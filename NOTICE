@@ -1,0 +1,8 @@
+Yinian Lite is a lightweight local-first notes prototype inspired by Memos.
+
+Upstream project:
+https://github.com/usememos/memos
+
+Memos is licensed under the MIT License. This prototype keeps attribution to
+the upstream project and was created as a simplified browser-only adaptation
+for quick product validation.
