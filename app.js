@@ -508,8 +508,8 @@ function renderActivityBars() {
 
 function renderRecentSignals() {
     const notes = [...activeNotes()].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 4);
-    el.recentSignals.innerHTML = notes.length ? notes.map((note) => `
-        <article class="signal-row" data-note-id="${escapeHtml(note.id)}">
+    el.recentSignals.innerHTML = notes.length ? notes.map((note, index) => `
+        <article class="signal-row ${index === 1 ? "featured" : ""}" data-note-id="${escapeHtml(note.id)}">
             ${signalIcon(note.type)}
             <div class="signal-copy"><strong>${escapeHtml(note.title)}</strong><p>${escapeHtml(summarize(note.content))}</p></div>
             <div class="signal-meta"><span>${formatRelative(note.createdAt)}</span><em>${typeLabels[note.type]}</em></div>
@@ -1030,6 +1030,20 @@ el.importInput.addEventListener("change", async () => {
 
 el.mobileMenu.addEventListener("click", () => el.sidebar.classList.add("open"));
 el.sidebarClose.addEventListener("click", () => el.sidebar.classList.remove("open"));
+
+const focusBoard = document.querySelector(".focus-board");
+focusBoard.addEventListener("pointermove", (event) => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const bounds = focusBoard.getBoundingClientRect();
+    const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 12;
+    const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 12;
+    focusBoard.style.setProperty("--board-x", `${x.toFixed(2)}px`);
+    focusBoard.style.setProperty("--board-y", `${y.toFixed(2)}px`);
+});
+focusBoard.addEventListener("pointerleave", () => {
+    focusBoard.style.setProperty("--board-x", "0px");
+    focusBoard.style.setProperty("--board-y", "0px");
+});
 
 document.querySelector("#copyWeekly").addEventListener("click", async () => {
     const report = `一念本周思考简报\n\n本周主线：${document.querySelector("#weeklyTheme").textContent}\n\n重复出现：${document.querySelector("#weeklyRepeatTitle").textContent}\n${document.querySelector("#weeklyRepeatCopy").textContent}\n\n下周实验：所有大任务先写 15 分钟版本。`;
