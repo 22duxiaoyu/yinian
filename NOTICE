@@ -1,8 +1,9 @@
-Yinian Lite is a lightweight local-first notes prototype inspired by Memos.
+Yinian is a local-first AI thinking workspace. Its original quick-capture
+direction was inspired by Memos.
 
 Upstream project:
 https://github.com/usememos/memos
 
-Memos is licensed under the MIT License. This prototype keeps attribution to
-the upstream project and was created as a simplified browser-only adaptation
-for quick product validation.
+Memos is licensed under the MIT License. Yinian keeps attribution to the
+upstream project. The current product positioning, information architecture,
+AI interaction design, interface, and browser implementation are independent.
