@@ -1068,7 +1068,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     .capture-modal, .command-palette { border-radius: 24px; }
 }
 
-/* Moonstone palette study. Kept local until the visual direction is approved. */
+/* Moonstone palette system. */
 :root {
     --bg: #e7ebef;
     --paper: rgba(255,255,255,.72);
