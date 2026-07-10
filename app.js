@@ -1045,6 +1045,11 @@ focusBoard.addEventListener("pointerleave", () => {
     focusBoard.style.setProperty("--board-y", "0px");
 });
 
+const topbar = document.querySelector(".topbar");
+window.addEventListener("scroll", () => {
+    topbar.classList.toggle("scrolled", window.scrollY > 18);
+}, { passive: true });
+
 document.querySelector("#copyWeekly").addEventListener("click", async () => {
     const report = `一念本周思考简报\n\n本周主线：${document.querySelector("#weeklyTheme").textContent}\n\n重复出现：${document.querySelector("#weeklyRepeatTitle").textContent}\n${document.querySelector("#weeklyRepeatCopy").textContent}\n\n下周实验：所有大任务先写 15 分钟版本。`;
     try {
