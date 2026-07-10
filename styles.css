@@ -1067,3 +1067,176 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     .insight-card:hover { transform: translateY(-2px); }
     .capture-modal, .command-palette { border-radius: 24px; }
 }
+
+/* Moonstone palette study. Kept local until the visual direction is approved. */
+:root {
+    --bg: #e7ebef;
+    --paper: rgba(255,255,255,.72);
+    --paper-soft: rgba(242,244,246,.78);
+    --ink: #171b21;
+    --ink-soft: #353b43;
+    --muted: #69717b;
+    --muted-2: #949ba3;
+    --line: rgba(45,55,66,.1);
+    --line-strong: rgba(45,55,66,.17);
+    --green: #5c7087;
+    --green-dark: #44596f;
+    --green-soft: rgba(92,112,135,.11);
+    --cobalt: #5c7087;
+    --cobalt-dark: #344657;
+    --mint: #718f7f;
+    --lime: #d9c69d;
+    --lime-soft: rgba(217,198,157,.18);
+    --blue: #7d7d98;
+    --blue-soft: rgba(125,125,152,.11);
+    --orange: #b7835a;
+    --orange-soft: rgba(183,131,90,.12);
+    --rose: #a76f78;
+    --rose-soft: rgba(167,111,120,.11);
+    --shadow-sm: 0 9px 28px rgba(35,43,52,.065), 0 1px 2px rgba(35,43,52,.035);
+    --shadow-md: 0 28px 80px rgba(35,43,52,.15), 0 3px 10px rgba(35,43,52,.06);
+}
+
+body {
+    position: relative;
+    background: linear-gradient(180deg,#f0f3f5 0%,#e7ebef 48%,#dfe5e9 100%);
+    background-attachment: fixed;
+}
+body::before {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    content: "";
+    background:
+        linear-gradient(118deg,rgba(122,145,168,.22) 0%,transparent 36%),
+        linear-gradient(305deg,rgba(123,157,139,.17) 0%,transparent 39%),
+        linear-gradient(165deg,rgba(255,255,255,.55) 8%,transparent 48%);
+}
+
+.auth-screen { background: linear-gradient(145deg,#e9edf0,#dfe5e9); }
+.auth-showcase { background: linear-gradient(145deg,#25323e 0%,#394b59 58%,#596f79 100%); box-shadow: 0 30px 78px rgba(37,50,62,.25),inset 0 1px rgba(255,255,255,.22); }
+.auth-showcase::before { background: linear-gradient(125deg,rgba(255,255,255,.16),transparent 30%,transparent 68%,rgba(14,23,31,.2)); }
+.auth-insight > p { color: #d8c49a; }
+.auth-orbit span { background: #d8c49a; }
+.auth-orbit i { background: #93a9bc; }
+.auth-orbit b { background: #b88460; }
+.auth-entry-inner { border-color: rgba(255,255,255,.68); background: rgba(255,255,255,.46); box-shadow: 0 28px 78px rgba(42,52,61,.14),inset 0 1px rgba(255,255,255,.86); backdrop-filter: blur(38px) saturate(145%); -webkit-backdrop-filter: blur(38px) saturate(145%); }
+.demo-button { background: #29343f; box-shadow: 0 14px 30px rgba(41,52,63,.22),inset 0 1px rgba(255,255,255,.18); }
+.demo-button:hover { background: #344452; box-shadow: 0 18px 36px rgba(41,52,63,.27),inset 0 1px rgba(255,255,255,.2); }
+.auth-form input { background: rgba(255,255,255,.36); }
+
+.sidebar, .ai-rail {
+    border-color: rgba(255,255,255,.62);
+    background: rgba(247,249,250,.43);
+    box-shadow: 0 20px 58px rgba(38,47,57,.1),inset 0 1px rgba(255,255,255,.78);
+    backdrop-filter: blur(38px) saturate(150%);
+    -webkit-backdrop-filter: blur(38px) saturate(150%);
+}
+.topbar {
+    border-color: rgba(255,255,255,.66);
+    background: rgba(248,250,251,.42);
+    box-shadow: 0 14px 38px rgba(38,47,57,.09),inset 0 1px rgba(255,255,255,.82);
+    backdrop-filter: blur(36px) saturate(155%);
+    -webkit-backdrop-filter: blur(36px) saturate(155%);
+}
+.topbar.scrolled { background: rgba(248,250,251,.64); box-shadow: 0 18px 46px rgba(38,47,57,.12),inset 0 1px #fff; }
+.brand-logo, .ai-mark { background: linear-gradient(145deg,#61778d,#445a70); box-shadow: inset 0 1px rgba(255,255,255,.3),0 9px 22px rgba(68,90,112,.2); }
+.workspace-switcher { border-color: rgba(255,255,255,.62); background: rgba(255,255,255,.32); }
+.workspace-switcher:hover { background: rgba(255,255,255,.55); }
+.workspace-switcher .workspace-icon { background: rgba(92,112,135,.13); color: #50677e; }
+.nav-item.active { background: rgba(92,112,135,.13); color: #465d73; }
+.nav-item.active svg, .nav-item.active em { color: #50677e; }
+.nav-item.active em, .nav-item b { background: rgba(92,112,135,.12); }
+.nav-item b { color: #50677e; }
+.search-trigger { background: rgba(255,255,255,.28); }
+.search-trigger:hover { background: rgba(255,255,255,.52); }
+.overline { color: #5c7087; }
+.primary-button { border-color: rgba(45,55,66,.34); background: rgba(37,45,54,.93); box-shadow: 0 10px 24px rgba(37,45,54,.18),inset 0 1px rgba(255,255,255,.16); }
+.primary-button:hover { background: #303b46; box-shadow: 0 14px 30px rgba(37,45,54,.22),inset 0 1px rgba(255,255,255,.18); }
+.outline-button:hover { border-color: rgba(92,112,135,.25); color: #50677e; }
+
+.focus-board {
+    grid-template-columns: minmax(0,1.35fr) minmax(310px,.65fr);
+    border-color: rgba(255,255,255,.72);
+    background: rgba(255,255,255,.42);
+    color: var(--ink);
+    box-shadow: 0 28px 78px rgba(43,53,63,.13),inset 0 1px rgba(255,255,255,.9);
+    backdrop-filter: blur(34px) saturate(145%);
+    -webkit-backdrop-filter: blur(34px) saturate(145%);
+}
+.focus-board::before { background: linear-gradient(120deg,rgba(255,255,255,.45),transparent 34%,transparent 76%,rgba(92,112,135,.06)); }
+.section-kicker { color: #647487; }
+.confidence { border-color: rgba(255,255,255,.65); background: rgba(255,255,255,.42); color: #5f6974; box-shadow: inset 0 1px rgba(255,255,255,.74); }
+.confidence strong { color: #34414d; }
+.confidence i { background: #718f7f; }
+.focus-copy h2 { color: #171b21; }
+.focus-copy > p { color: #68717c; }
+.evidence-row { color: #8c949d; }
+.evidence-row button { border-color: rgba(255,255,255,.72); background: rgba(255,255,255,.42); color: #50677e; box-shadow: inset 0 1px rgba(255,255,255,.82),0 7px 18px rgba(43,53,63,.05); }
+.evidence-row button:hover { background: rgba(255,255,255,.68); }
+.focus-visual {
+    min-height: 350px;
+    margin: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 25px;
+    background: linear-gradient(150deg,rgba(28,34,41,.96),rgba(48,59,68,.9));
+    box-shadow: 0 24px 55px rgba(31,39,47,.22),inset 0 1px rgba(255,255,255,.13);
+}
+.core-node { border-color: rgba(255,255,255,.22); background: rgba(149,169,182,.13); box-shadow: 0 24px 48px rgba(11,17,23,.27),inset 0 1px rgba(255,255,255,.18),0 0 0 18px rgba(255,255,255,.035); }
+.core-node svg { color: #d8c49a; }
+.signal-node { border-color: rgba(255,255,255,.14); background: rgba(255,255,255,.07); }
+.signal-node i { background: #718f7f; box-shadow: 0 0 0 6px rgba(113,143,127,.14); }
+.node-b i { background: #b7835a; box-shadow: 0 0 0 6px rgba(183,131,90,.14); }
+.node-c i { background: #d8c49a; }
+
+.metric-band, .content-section, .library-list, .action-progress, .weekly-report, .insight-card, .north-star, .guardrail, .role-contract, .roadmap, .insight-hero, .assumption-table { border-color: rgba(255,255,255,.64); background: rgba(255,255,255,.58); box-shadow: var(--shadow-sm),inset 0 1px rgba(255,255,255,.86); }
+.mini-bars div.active { background: #667d92; }
+.mini-bars div:hover { background: #718f7f; }
+.signal-row:hover, .signal-row.featured, .signal-list:hover .signal-row.featured:not(:hover) { background: rgba(92,112,135,.085); }
+.signal-row:hover .signal-type, .signal-row.featured .signal-type, .signal-list:hover .signal-row.featured:not(:hover) .signal-type { background: rgba(92,112,135,.12); color: #50677e; }
+.action-row:hover { background: rgba(113,143,127,.1); }
+.library-toolbar { border-color: rgba(255,255,255,.64); background: rgba(255,255,255,.35); backdrop-filter: blur(28px) saturate(145%); -webkit-backdrop-filter: blur(28px) saturate(145%); }
+.filter-tabs button.active { color: #50677e; }
+.library-item:hover { background: rgba(92,112,135,.075); }
+.confidence-ring { background: conic-gradient(#667d92 calc(var(--score) * 1%),rgba(112,122,132,.12) 0); }
+.insight-card:hover { border-color: rgba(92,112,135,.18); }
+.insight-card:hover .insight-card-head em, .insight-card:hover footer button { color: #50677e; }
+.progress-track span { background: linear-gradient(90deg,#62798e,#789889); }
+.board-card:hover { border-color: rgba(92,112,135,.18); }
+.weekly-next, .roadmap-item.complete { background: linear-gradient(145deg,#33424f,#536773); }
+.case-badge { border-color: rgba(92,112,135,.18); background: rgba(92,112,135,.1); color: #50677e; }
+.reasoning-card, .rail-evidence-item, .ai-composer > div { border-color: rgba(255,255,255,.6); background: rgba(255,255,255,.3); }
+.rail-insight { background: linear-gradient(145deg,#26313a,#161d23); }
+.rail-label, .rail-insight button { color: #d8c49a; }
+.ai-composer button { background: #536a7f; }
+.profile-menu, .capture-modal, .command-palette { border-color: rgba(255,255,255,.68); background: rgba(248,249,250,.58); backdrop-filter: blur(38px) saturate(150%); -webkit-backdrop-filter: blur(38px) saturate(150%); }
+.capture-types button:hover, .capture-types button.active { background: rgba(92,112,135,.12); color: #50677e; }
+.command-result:hover { background: rgba(92,112,135,.09); }
+.detail-ai { background: rgba(92,112,135,.09); }
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #15191e;
+        --paper: rgba(34,39,45,.78);
+        --paper-soft: rgba(49,55,62,.76);
+        --ink: #f2f3f4;
+        --ink-soft: #d8dce0;
+        --muted: #aab0b7;
+        --muted-2: #7d858d;
+        --line: rgba(255,255,255,.09);
+        --line-strong: rgba(255,255,255,.15);
+    }
+    body { background: linear-gradient(180deg,#1b2026,#11151a); }
+    body::before { background: linear-gradient(118deg,rgba(91,116,139,.15),transparent 37%),linear-gradient(305deg,rgba(89,127,106,.12),transparent 40%); }
+    .focus-board { border-color: rgba(255,255,255,.1); background: rgba(38,44,51,.52); }
+    .focus-copy h2 { color: #f2f3f4; }
+    .focus-copy > p, .evidence-row { color: #aab0b7; }
+    .confidence { border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.06); color: #adb4bb; }
+    .confidence strong { color: #f2f3f4; }
+    .evidence-row button { border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.07); color: #b8c7d4; }
+    .metric-band, .content-section, .library-list, .action-progress, .weekly-report, .insight-card, .north-star, .guardrail, .role-contract, .roadmap, .insight-hero, .assumption-table { border-color: rgba(255,255,255,.08); background: rgba(38,43,49,.68); }
+    .sidebar, .ai-rail, .topbar { border-color: rgba(255,255,255,.09); background: rgba(34,39,45,.46); }
+    .library-toolbar, .profile-menu, .capture-modal, .command-palette { border-color: rgba(255,255,255,.1); background: rgba(39,44,50,.6); }
+}
