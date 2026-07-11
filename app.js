@@ -980,6 +980,7 @@ function renderInsights() {
         ["15 分钟最小行动能持续提高完成率", "已有初步证据"],
         ["每周一次提炼比实时提醒更少打扰", "尚未验证"],
     ];
+    document.querySelector("#insightDecisionCount").textContent = `${assumptions.slice(0, 2).length + 1} 个判断`;
     el.assumptionTable.innerHTML = assumptions.slice(0, 2).map(([title, status], index) => `
         <div class="assumption-row" data-assumption="${index}">
             <div><strong>${title}</strong><p>系统会根据后续输入持续更新判断。</p></div>
@@ -1020,7 +1021,7 @@ function renderWeekly() {
     const topics = [...new Set([lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, 4);
     document.querySelector("#weeklyTheme").textContent = lead.topic === "启动成本" ? "从“把事情想清楚”转向“先做出一个可以验证的版本”。" : `本周最稳定的思考主线是“${lead.topic}”，它正在影响你的行动选择。`;
     document.querySelector("#weeklyRepeatTitle").textContent = lead.topic;
-    document.querySelector("#weeklyTrackTopic").textContent = lead.topic;
+    document.querySelector("#weeklyMapInsight").textContent = lead.topic;
     document.querySelector("#weeklyRepeatCopy").textContent = lead.detail;
     document.querySelector("#weeklyHeaderInputs").textContent = week.length;
     document.querySelector("#weeklyHeaderDone").textContent = done.length;
@@ -1517,6 +1518,35 @@ el.assumptionTable.addEventListener("click", (event) => {
     status.style.color = action.dataset.assumptionAction === "confirm" ? "var(--green)" : "var(--rose)";
     row.querySelectorAll("button").forEach((button) => button.disabled = true);
     showToast(action.dataset.assumptionAction === "confirm" ? "假设已确认，将进入后续观察" : "假设已驳回，AI 将降低相关权重");
+});
+
+document.querySelector("#insightLeadConfirm").addEventListener("click", () => {
+    const hero = document.querySelector(".insight-decision-hero");
+    const confirm = document.querySelector("#insightLeadConfirm");
+    const reject = document.querySelector("#insightLeadReject");
+    hero.classList.remove("is-rejected");
+    hero.classList.add("is-confirmed");
+    confirm.innerHTML = `<svg><use href="#i-check" /></svg>已确认`;
+    confirm.disabled = true;
+    reject.hidden = true;
+    document.querySelector("#insightLeadAction").hidden = false;
+    document.querySelector("#insightDecisionCount").textContent = "2 个判断";
+    showOperationFeedback("洞察已确认", "success");
+    showToast("已确认这条洞察，现在可以把它转成行动");
+});
+
+document.querySelector("#insightLeadReject").addEventListener("click", () => {
+    const hero = document.querySelector(".insight-decision-hero");
+    const confirm = document.querySelector("#insightLeadConfirm");
+    const reject = document.querySelector("#insightLeadReject");
+    hero.classList.remove("is-confirmed");
+    hero.classList.add("is-rejected");
+    confirm.disabled = true;
+    reject.textContent = "已暂不采纳";
+    reject.disabled = true;
+    document.querySelector("#insightLeadAction").hidden = true;
+    document.querySelector("#insightDecisionCount").textContent = "2 个判断";
+    showToast("已暂不采纳，AI 会降低这条判断的优先级");
 });
 
 el.closeDetail.addEventListener("click", closeDetailDrawer);

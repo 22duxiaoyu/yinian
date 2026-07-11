@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-19" />
+        <link rel="stylesheet" href="./styles.css?v=action-20" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -255,15 +255,16 @@
                             <div><p class="overline">AI SYNTHESIS</p><h1>洞察</h1><p>从灵感库中找出重复信号，整理成可检查的结论和下一步。</p></div>
                             <button class="primary-button" data-run-analysis type="button"><svg><use href="#i-spark" /></svg><span>用 AI 做洞察</span></button>
                         </div>
-                        <div class="insight-hero">
-                            <div><div class="insight-hero-kicker"><span>最值得优先处理</span><em id="insightSourceSummary">0 条内容 · 最近 14 天</em></div><h2 id="insightConsensus">真正影响推进速度的，不是任务数量，而是第一步是否足够明确。</h2><p id="insightConsensusDetail">系统会把结论与原始依据连接起来，最终判断仍由你完成。</p><div class="insight-hero-actions"><button class="insight-evidence-button" id="insightLeadEvidence" type="button">查看依据 <svg><use href="#i-arrow" /></svg></button><button class="insight-action-button" data-open-capture="task" type="button">转成行动 <svg><use href="#i-arrow" /></svg></button></div></div>
-                            <div class="confidence-ring" style="--score:86"><strong id="insightScore">86</strong><span>可信度</span></div>
-                        </div>
-                        <section class="insight-secondary"><div class="section-head"><div><p class="overline">SECONDARY SIGNAL</p><h2>补充观察</h2></div><span class="section-count" id="insightSecondaryCount">1 条</span></div><div class="insight-grid" id="insightGrid"></div></section>
-                        <section class="assumption-section">
-                            <div class="section-head"><div><p class="overline">HUMAN IN THE LOOP</p><h2>需要你确认</h2></div><span class="section-count">AI 不替你做决定</span></div>
+                        <section class="insight-decision-zone">
+                            <header><div><p class="overline">HUMAN IN THE LOOP</p><h2>需要你确认</h2></div><span class="section-count" id="insightDecisionCount">3 个判断</span></header>
+                            <div class="insight-hero insight-decision-hero">
+                                <div><div class="insight-hero-kicker"><span>当前优先判断</span><em id="insightSourceSummary">0 条内容 · 最近 14 天</em></div><h2 id="insightConsensus">真正影响推进速度的，不是任务数量，而是第一步是否足够明确。</h2><p id="insightConsensusDetail">系统会把结论与原始依据连接起来，最终判断仍由你完成。</p><div class="insight-hero-actions"><button class="insight-evidence-button" id="insightLeadEvidence" type="button">查看依据 <svg><use href="#i-arrow" /></svg></button><button class="insight-decision-button accept" id="insightLeadConfirm" type="button"><svg><use href="#i-check" /></svg>确认洞察</button><button class="insight-decision-button reject" id="insightLeadReject" type="button">暂不采纳</button><button class="insight-action-button" id="insightLeadAction" data-open-capture="task" type="button" hidden>转成行动 <svg><use href="#i-arrow" /></svg></button></div></div>
+                                <div class="confidence-ring" style="--score:86"><strong id="insightScore">86</strong><span>可信度</span></div>
+                            </div>
+                            <div class="insight-pending-head"><span>接下来还需确认</span><em>AI 只提出判断，决定权在你</em></div>
                             <div class="assumption-table" id="assumptionTable"></div>
                         </section>
+                        <section class="insight-secondary"><div class="section-head"><div><p class="overline">SECONDARY SIGNAL</p><h2>补充观察</h2></div><span class="section-count" id="insightSecondaryCount">1 条</span></div><div class="insight-grid" id="insightGrid"></div></section>
                     </section>
 
                     <section class="app-view" id="view-actions" data-view-panel="actions">
@@ -287,25 +288,21 @@
                             <div><p class="overline">WEEKLY BRIEF</p><h1>本周思考简报</h1><p><span id="weeklyRange">本周</span><span class="weekly-live-status"><i></i>随输入实时更新</span></p></div>
                             <button class="outline-button" id="copyWeekly" type="button"><svg><use href="#i-download" /></svg><span>复制简报</span></button>
                         </div>
-                        <article class="weekly-report weekly-memo">
-                            <header><span>ACTION / WEEKLY DECISION MEMO</span><strong id="weeklyDate">--</strong></header>
-                            <section class="weekly-memo-lead">
-                                <div><p>本周核心判断</p><h2 id="weeklyTheme">从“把事情想清楚”转向“先做出一个可以验证的版本”。</h2><span>这不是内容摘要，而是基于本周输入与行动结果形成的阶段性判断。</span></div>
-                                <dl class="weekly-memo-stats"><div><dt>本周输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成行动</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动完成率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl>
-                            </section>
-                            <section class="weekly-story">
-                                <div class="weekly-story-heading"><span>FROM SIGNAL TO DECISION</span><div><h3>本周变化链</h3><p>输入只有进入判断和行动，才会成为真正有价值的个人证据。</p></div></div>
-                                <div class="weekly-story-track">
-                                    <div><span>01 / 输入</span><strong><b id="weeklyInputCount">0</b> 条内容</strong><div class="weekly-topic-list" id="weeklyTopicList"></div></div><i></i>
-                                    <div><span>02 / 洞察</span><strong id="weeklyTrackTopic">启动成本</strong><small id="weeklyEvidenceCount">0 条依据</small></div><i></i>
-                                    <div><span>03 / 行动</span><strong><b id="weeklyDoneCount">0</b> 个完成</strong><small>真实结果进入分析</small></div><i></i>
-                                    <div><span>04 / 反馈</span><strong id="weeklyProgressLabel">0% 完成</strong><small>形成下一轮判断</small></div>
+                        <article class="weekly-report weekly-map-report">
+                            <header><span>ACTION / WEEKLY MAP</span><strong id="weeklyDate">--</strong></header>
+                            <section class="weekly-map-intro"><div><p>本周复盘地图</p><h2>一张图看清本周发生了什么。</h2><span>中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。</span></div><dl><div><dt>本周输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成行动</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动完成率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl></section>
+                            <section class="weekly-mindmap-section">
+                                <div class="weekly-mindmap-heading"><span>MIND MAP / WEEKLY 01</span><strong>输入、判断、行动与下一步</strong></div>
+                                <div class="weekly-mindmap">
+                                    <div class="weekly-map-connectors" aria-hidden="true"></div>
+                                    <div class="weekly-map-node input"><span>本周输入</span><strong><b id="weeklyInputCount">0</b> 条内容</strong><div class="weekly-topic-list" id="weeklyTopicList"></div></div>
+                                    <div class="weekly-map-node insight"><span>关键洞察</span><strong id="weeklyMapInsight">启动成本</strong><small><b id="weeklyInsightScore">86</b>% 可信 · <em id="weeklyEvidenceCount">0 条依据</em></small></div>
+                                    <div class="weekly-map-core"><span>本周核心判断</span><h3 id="weeklyTheme">从“把事情想清楚”转向“先做出一个可以验证的版本”。</h3></div>
+                                    <div class="weekly-map-node action"><span>行动结果</span><strong><b id="weeklyDoneCount">0</b> 个完成</strong><small id="weeklyProgressLabel">0% 完成</small></div>
+                                    <div class="weekly-map-node next"><span>下周实验</span><strong id="weeklyNextTitle">把下一步缩小到 15 分钟</strong><small>持续 5 天 · 每天 15 分钟</small></div>
                                 </div>
                             </section>
-                            <section class="weekly-memo-body">
-                                <div class="weekly-analysis-note"><div class="weekly-section-number">01</div><div class="weekly-analysis-copy"><span>本周判断</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p><div class="weekly-evidence-line"><strong><b id="weeklyInsightScore">86</b>%</strong><span>综合可信度</span><button id="weeklyEvidenceButton" data-open-evidence="启动成本" type="button">核对原始依据 <svg><use href="#i-arrow" /></svg></button></div><div class="weekly-action-note"><span>行动反馈</span><p id="weeklyActionCopy">行动结果会反过来验证本周的判断，而不只是增加完成数量。</p></div></div></div>
-                                <aside class="weekly-next-panel"><div><span>02 / NEXT WEEK</span><em>建议实验</em></div><h3 id="weeklyNextTitle">把下一步缩小到 15 分钟</h3><p id="weeklyNextCopy">连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。</p><dl><div><dt>周期</dt><dd>5 天</dd></div><div><dt>投入</dt><dd>15 分钟 / 天</dd></div><div><dt>判断标准</dt><dd>是否更快开始</dd></div></dl><button data-open-capture="task" type="button">加入下周行动 <svg><use href="#i-arrow" /></svg></button></aside>
-                            </section>
+                            <section class="weekly-map-reference"><div><span>为什么得出这个判断</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p><button id="weeklyEvidenceButton" data-open-evidence="启动成本" type="button">查看原始依据 <svg><use href="#i-arrow" /></svg></button><div><strong>行动反馈</strong><p id="weeklyActionCopy">行动结果会反过来验证本周的判断，而不只是增加完成数量。</p></div></div><aside><span>NEXT EXPERIMENT</span><h3>怎么验证</h3><p id="weeklyNextCopy">连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。</p><dl><div><dt>观察指标</dt><dd>实际开始时间</dd></div><div><dt>成功标准</dt><dd>开始更快且能完成</dd></div></dl><button data-open-capture="task" type="button">加入下周行动 <svg><use href="#i-arrow" /></svg></button></aside></section>
                             <footer><span id="weeklySourceCount">基于 0 条本周输入</span><span>内容随输入和行动结果实时更新</span></footer>
                         </article>
                     </section>
@@ -407,6 +404,6 @@
             </div>
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
-        <script src="./app.js?v=19"></script>
+        <script src="./app.js?v=20"></script>
     </body>
 </html>
