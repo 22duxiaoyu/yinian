@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-17" />
+        <link rel="stylesheet" href="./styles.css?v=action-18" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -173,51 +173,53 @@
                     <section class="app-view active" id="view-overview" data-view-panel="overview">
                         <div class="page-heading overview-heading-row">
                             <div>
-                                <p class="overline"><span class="live-dot"></span><span id="todayLabel">今日思考现场</span></p>
-                                <h1 id="greetingTitle">把想法变成清晰的下一步。</h1>
-                                <p>不是记录更多，而是更早看见真正重要的模式。</p>
+                                <p class="overline"><span class="live-dot"></span><span id="todayLabel">今日工作区</span></p>
+                                <h1 id="greetingTitle">今天，先推进一件真正重要的事。</h1>
+                                <p>处理行动、确认洞察，再把新的变化记录下来。</p>
                             </div>
                             <div class="heading-actions">
-                                <button class="outline-button" id="openWeekly" type="button">查看本周简报</button>
-                                <button class="primary-button" id="runAnalysis" type="button"><svg><use href="#i-spark" /></svg><span>生成今日洞察</span></button>
+                                <button class="outline-button" data-open-capture type="button"><svg><use href="#i-plus" /></svg><span>记录新变化</span></button>
+                                <button class="primary-button" id="runAnalysis" type="button"><svg><use href="#i-spark" /></svg><span>整理待确认洞察</span></button>
                             </div>
                         </div>
 
-                        <section class="focus-board">
-                            <div class="focus-copy">
-                                <div class="section-kicker"><span>当前关注</span><span class="confidence"><i></i>综合置信度 <strong id="heroConfidence">86%</strong></span></div>
-                                <h2 id="heroInsight">你不是缺少计划，而是启动动作太大。</h2>
-                                <p id="heroInsightDetail">最近多条记录都指向同一个摩擦点：当任务需要先搭完整框架时，你更容易延迟开始。把第一步压缩到 15 分钟，完成率明显提高。</p>
-                                <div class="focus-footer" id="heroEvidence">
-                                    <div class="focus-actions">
-                                        <button class="focus-evidence-button" type="button" data-open-evidence="启动成本"><svg><use href="#i-link" /></svg><span>查看 6 条证据</span></button>
-                                        <button class="focus-action-button" id="heroCreateAction" type="button"><svg><use href="#i-arrow" /></svg><span>转成行动</span></button>
+                        <div class="workbench-main-grid">
+                            <section class="workbench-primary focus-board" aria-labelledby="focusTaskTitle">
+                                <div class="workbench-primary-head"><span><i></i>现在处理</span><em id="focusTaskStatus">待推进</em></div>
+                                <div class="workbench-primary-body">
+                                    <span class="workbench-task-icon"><svg><use href="#i-target" /></svg></span>
+                                    <div>
+                                        <p>今日焦点行动</p>
+                                        <h2 id="focusTaskTitle">先完成一个可以验证的下一步</h2>
+                                        <div id="focusTaskDetail">用一次真实行动，为当前判断补充反馈。</div>
                                     </div>
-                                    <div class="focus-meta"><span>过去 7 天</span><span>刚刚更新</span></div>
                                 </div>
-                            </div>
-                        </section>
+                                <div class="workbench-primary-footer">
+                                    <span id="focusTaskMeta">等待选择行动</span>
+                                    <div><button class="outline-button" id="focusTaskOpen" type="button">打开详情</button><button class="primary-button" id="focusTaskComplete" data-toggle-task type="button"><svg><use href="#i-check" /></svg><span>标记完成</span></button></div>
+                                </div>
+                            </section>
 
-                        <nav class="workflow-strip" aria-label="从灵感到行动的工作流">
-                            <button data-view-jump="library" type="button"><span>01 / 输入</span><strong id="metricWeekSignals">0</strong><small id="metricWeekDelta">查看本周灵感</small><svg><use href="#i-arrow" /></svg></button>
-                            <button data-view-jump="insights" type="button"><span>02 / 洞察</span><strong id="metricInsights">0</strong><small>核对结论与原始依据</small><svg><use href="#i-arrow" /></svg></button>
-                            <button data-view-jump="actions" type="button"><span>03 / 行动</span><strong id="workflowActionCount">0</strong><small>推进可验证的下一步</small><svg><use href="#i-arrow" /></svg></button>
-                        </nav>
+                            <section class="workbench-queue" aria-labelledby="workQueueTitle">
+                                <div class="section-head"><div><p class="overline">WORK QUEUE</p><h2 id="workQueueTitle">待处理队列</h2></div><span class="section-count" id="actionOpenCount">0 项</span></div>
+                                <div class="action-list animated-work-list" id="overviewActions"></div>
+                                <button class="workbench-queue-link" data-view-jump="actions" type="button"><span>管理全部行动</span><svg><use href="#i-arrow" /></svg></button>
+                            </section>
+                        </div>
 
-                        <div class="overview-columns">
-                            <section class="content-section signal-section">
+                        <div class="workbench-support-grid">
+                            <section class="workbench-review">
+                                <div class="workbench-review-label"><span><svg><use href="#i-spark" /></svg>待你确认</span><em id="workbenchInsightConfidence">86% 可信</em></div>
+                                <h2 id="workbenchInsightTitle">一个需要你判断的 AI 洞察</h2>
+                                <p id="workbenchInsightDetail">结论只有在你检查过依据之后，才值得进入行动。</p>
+                                <div><button class="focus-evidence-button" id="workbenchInsightEvidence" data-open-evidence="启动成本" type="button"><svg><use href="#i-link" /></svg><span>查看依据</span></button><button class="focus-action-button" data-view-jump="insights" type="button">去确认 <svg><use href="#i-arrow" /></svg></button></div>
+                            </section>
+                            <section class="workbench-recent">
                                 <div class="section-head">
-                                    <div><p class="overline">SIGNAL STREAM</p><h2>最近输入</h2></div>
-                                    <button class="text-button" data-view-jump="library" type="button">查看全部 <svg><use href="#i-arrow" /></svg></button>
+                                    <div><p class="overline">LATEST CHANGES</p><h2>最近输入</h2></div>
+                                    <button class="text-button" data-view-jump="library" type="button">进入灵感库 <svg><use href="#i-arrow" /></svg></button>
                                 </div>
                                 <div class="signal-list" id="recentSignals"></div>
-                            </section>
-                            <section class="content-section action-section">
-                                <div class="section-head">
-                                    <div><p class="overline">NEXT ACTIONS</p><h2>建议行动</h2></div>
-                                    <span class="section-count" id="actionOpenCount">0 待处理</span>
-                                </div>
-                                <div class="action-list" id="overviewActions"></div>
                             </section>
                         </div>
                     </section>
@@ -285,16 +287,27 @@
                             <div><p class="overline">WEEKLY BRIEF</p><h1>本周思考简报</h1><p><span id="weeklyRange">本周</span><span class="weekly-live-status"><i></i>随输入实时更新</span></p></div>
                             <button class="outline-button" id="copyWeekly" type="button"><svg><use href="#i-download" /></svg><span>复制简报</span></button>
                         </div>
-                        <article class="weekly-report">
-                            <header><span>ACTION / WEEKLY 01</span><strong id="weeklyDate">--</strong></header>
-                            <section class="weekly-opening"><p>本周主线</p><h2 id="weeklyTheme">从“把事情想清楚”转向“先做出一个可以验证的版本”。</h2></section>
-                            <div class="weekly-grid">
-                                <section><span>01 / 重复出现</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p></section>
-                                <section><span>02 / 正向变化</span><h3>行动开始反哺判断</h3><p>你记录了更多完成后的真实感受，而不只是事前计划，这是更可靠的个人证据。</p></section>
-                                <section><span>03 / 未解决张力</span><h3>质量与速度仍在拉扯</h3><p>“先完成”和“做高级”频繁同时出现。下周值得明确一个可接受的质量下限。</p></section>
-                                <section class="weekly-next"><span>04 / 下周实验</span><h3>所有大任务先写 15 分钟版本</h3><p>连续测试 5 天，记录实际开始时间和完成感受，用数据判断它是否真的有效。</p><button data-open-capture="task" type="button">加入行动 <svg><use href="#i-arrow" /></svg></button></section>
+                        <article class="weekly-report weekly-quadrant-report">
+                            <header><span>ACTION / WEEKLY REVIEW</span><strong id="weeklyDate">--</strong></header>
+                            <section class="weekly-opening">
+                                <div><p>本周核心判断</p><h2 id="weeklyTheme">从“把事情想清楚”转向“先做出一个可以验证的版本”。</h2></div>
+                                <dl><div><dt>输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl>
+                            </section>
+                            <div class="weekly-quadrants" aria-label="本周四象限复盘">
+                                <section class="weekly-quadrant" data-weekly-spotlight>
+                                    <span>01 / 本周输入</span><h3><strong id="weeklyInputCount">0</strong> 条新内容</h3><p>记录和导入的内容构成了本周判断的原始依据。</p><div class="weekly-topic-list" id="weeklyTopicList"></div><button data-view-jump="library" type="button">查看本周输入 <svg><use href="#i-arrow" /></svg></button>
+                                </section>
+                                <section class="weekly-quadrant" data-weekly-spotlight>
+                                    <span>02 / 关键洞察</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p><div class="weekly-confidence"><i><b id="weeklyInsightScore">86</b></i><span>综合可信度<br /><em id="weeklyEvidenceCount">0 条依据</em></span></div><button id="weeklyEvidenceButton" data-open-evidence="启动成本" type="button">核对原始依据 <svg><use href="#i-arrow" /></svg></button>
+                                </section>
+                                <section class="weekly-quadrant" data-weekly-spotlight>
+                                    <span>03 / 行动反馈</span><h3><strong id="weeklyDoneCount">0</strong> 个行动已完成</h3><p id="weeklyActionCopy">行动结果会反过来验证本周的判断，而不只是增加完成数量。</p><div class="weekly-progress"><span><i id="weeklyProgressBar"></i></span><em id="weeklyProgressLabel">0% 完成</em></div><button data-view-jump="actions" type="button">查看行动结果 <svg><use href="#i-arrow" /></svg></button>
+                                </section>
+                                <section class="weekly-quadrant weekly-next" data-weekly-spotlight>
+                                    <span>04 / 下周实验</span><h3 id="weeklyNextTitle">把下一步缩小到 15 分钟</h3><p id="weeklyNextCopy">连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。</p><div class="weekly-experiment-meta"><span>持续 5 天</span><span>每天 15 分钟</span></div><button data-open-capture="task" type="button">加入下周行动 <svg><use href="#i-arrow" /></svg></button>
+                                </section>
                             </div>
-                            <footer><span id="weeklySourceCount">基于 0 条原始输入</span><span>由 Action 本地洞察引擎生成</span></footer>
+                            <footer><span id="weeklySourceCount">基于 0 条本周输入</span><span>内容随输入和行动结果实时更新</span></footer>
                         </article>
                     </section>
 
@@ -395,6 +408,6 @@
             </div>
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
-        <script src="./app.js?v=17"></script>
+        <script src="./app.js?v=18"></script>
     </body>
 </html>

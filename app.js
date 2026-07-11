@@ -51,6 +51,13 @@ const el = {
     mobileMenu: document.querySelector("#mobileMenu"),
     recentSignals: document.querySelector("#recentSignals"),
     overviewActions: document.querySelector("#overviewActions"),
+    focusTaskTitle: document.querySelector("#focusTaskTitle"),
+    focusTaskDetail: document.querySelector("#focusTaskDetail"),
+    focusTaskMeta: document.querySelector("#focusTaskMeta"),
+    focusTaskStatus: document.querySelector("#focusTaskStatus"),
+    focusTaskOpen: document.querySelector("#focusTaskOpen"),
+    focusTaskComplete: document.querySelector("#focusTaskComplete"),
+    workbenchInsightEvidence: document.querySelector("#workbenchInsightEvidence"),
     libraryList: document.querySelector("#libraryList"),
     documentImportInput: document.querySelector("#documentImportInput"),
     librarySearch: document.querySelector("#librarySearch"),
@@ -60,7 +67,6 @@ const el = {
     assumptionTable: document.querySelector("#assumptionTable"),
     todoActions: document.querySelector("#todoActions"),
     doneActions: document.querySelector("#doneActions"),
-    heroCreateAction: document.querySelector("#heroCreateAction"),
     aiTrigger: document.querySelector("#aiTrigger"),
     aiRail: document.querySelector("#aiRail"),
     aiRailBackdrop: document.querySelector("#aiRailBackdrop"),
@@ -810,7 +816,7 @@ function renderUser() {
     el.spaceName.textContent = state.user?.id === DEMO_USER.id ? "AI 产品经理作品集" : `${name}的思考空间`;
     el.activeUserName.textContent = name;
     el.userInitial.textContent = name.slice(0, 1).toUpperCase();
-    document.querySelector("#greetingTitle").textContent = `${getGreeting()}，${name}。先看见真正重要的事。`;
+    document.querySelector("#greetingTitle").textContent = `${getGreeting()}，${name}。今天先推进一件事。`;
 }
 
 function getGreeting() {
@@ -822,7 +828,7 @@ function getGreeting() {
 
 function renderDates() {
     const now = new Date();
-    document.querySelector("#todayLabel").textContent = `${now.getMonth() + 1} 月 ${now.getDate()} 日 · 今日思考现场`;
+    document.querySelector("#todayLabel").textContent = `${now.getMonth() + 1} 月 ${now.getDate()} 日 · 今日工作区`;
     const start = new Date(now);
     start.setDate(now.getDate() - 6);
     document.querySelector("#weeklyRange").textContent = `${start.getMonth() + 1} 月 ${start.getDate()} 日 - ${now.getMonth() + 1} 月 ${now.getDate()} 日`;
@@ -832,22 +838,38 @@ function renderDates() {
 function renderOverview() {
     const notes = activeNotes();
     const sources = activeSources();
-    const week = sources.filter((source) => isWithinDays(source.createdAt, 7));
-    const previous = sources.filter((source) => isInPreviousWeek(source.createdAt));
     const tasks = notes.filter((note) => note.type === "task");
+    const openTasks = tasks.filter((note) => !note.done).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    const focusTask = openTasks[0];
     const insights = buildInsights();
     const lead = insights[0];
-    document.querySelector("#heroInsight").textContent = lead.title;
-    document.querySelector("#heroInsightDetail").textContent = lead.detail;
-    document.querySelector("#heroConfidence").textContent = `${lead.confidence}%`;
-    document.querySelector("#heroEvidence .focus-evidence-button span").textContent = `查看 ${lead.evidence} 条证据`;
-    document.querySelector("#heroEvidence .focus-evidence-button").dataset.openEvidence = lead.topic;
-    setAnimatedNumber(document.querySelector("#metricWeekSignals"), week.length);
-    document.querySelector("#metricWeekDelta").textContent = `${week.length - previous.length >= 0 ? "+" : ""}${week.length - previous.length} 较上周 · 查看灵感`;
-    setAnimatedNumber(document.querySelector("#metricInsights"), insights.length);
-    const openTaskCount = tasks.filter((note) => !note.done).length;
-    setAnimatedNumber(document.querySelector("#workflowActionCount"), openTaskCount);
-    document.querySelector("#actionOpenCount").textContent = `${openTaskCount} 待处理`;
+
+    if (focusTask) {
+        el.focusTaskTitle.textContent = focusTask.title;
+        el.focusTaskDetail.textContent = summarize(focusTask.content, 118);
+        el.focusTaskMeta.textContent = `${focusTask.tags[0] ? `来自洞察：${focusTask.tags[0]} · ` : ""}${formatRelative(focusTask.updatedAt)}`;
+        el.focusTaskStatus.textContent = "待推进";
+        el.focusTaskOpen.textContent = "打开详情";
+        el.focusTaskOpen.dataset.noteId = focusTask.id;
+        el.focusTaskComplete.hidden = false;
+        el.focusTaskComplete.dataset.toggleTask = focusTask.id;
+    } else {
+        el.focusTaskTitle.textContent = "今天的待办已经清空";
+        el.focusTaskDetail.textContent = "可以记录一个新变化，或从待确认洞察中选择下一步。";
+        el.focusTaskMeta.textContent = "没有等待处理的行动";
+        el.focusTaskStatus.textContent = "已清空";
+        el.focusTaskOpen.textContent = "新建下一步";
+        delete el.focusTaskOpen.dataset.noteId;
+        el.focusTaskComplete.hidden = true;
+        delete el.focusTaskComplete.dataset.toggleTask;
+    }
+
+    document.querySelector("#workbenchInsightTitle").textContent = lead.title;
+    document.querySelector("#workbenchInsightDetail").textContent = lead.detail;
+    document.querySelector("#workbenchInsightConfidence").textContent = `${lead.confidence}% 可信`;
+    el.workbenchInsightEvidence.dataset.openEvidence = lead.topic;
+    el.workbenchInsightEvidence.querySelector("span").textContent = `查看 ${lead.evidence} 条依据`;
+    document.querySelector("#actionOpenCount").textContent = `${openTasks.length} 项`;
     document.querySelector("#reasonInputCount").textContent = `已读取 ${sources.length} 条有效内容`;
 
     renderRecentSignals();
@@ -856,7 +878,7 @@ function renderOverview() {
 }
 
 function renderRecentSignals() {
-    const sources = [...activeSources()].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 3);
+    const sources = [...activeSources()].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 2);
     el.recentSignals.innerHTML = sources.length ? sources.map((source, index) => `
         <article class="signal-row ${index === 1 ? "featured" : ""}" ${source.sourceKind === "document" ? `data-document-id="${escapeHtml(source.sourceId)}"` : `data-note-id="${escapeHtml(source.sourceId)}"`}>
             ${signalIcon(source.type)}
@@ -866,12 +888,13 @@ function renderRecentSignals() {
 }
 
 function renderOverviewActions() {
-    const tasks = activeNotes().filter((note) => note.type === "task").sort((a, b) => Number(a.done) - Number(b.done)).slice(0, 3);
+    const tasks = activeNotes().filter((note) => note.type === "task" && !note.done).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)).slice(0, 3);
     el.overviewActions.innerHTML = tasks.length ? tasks.map((note) => `
-        <article class="action-row ${note.done ? "done" : ""}${note.id === state.flashTaskId ? " status-flash" : ""}" data-note-id="${escapeHtml(note.id)}">
-            <button class="action-check" data-toggle-task="${escapeHtml(note.id)}" type="button" aria-label="${note.done ? "标记未完成" : "标记完成"}"><svg><use href="#i-check" /></svg></button>
-            <div><strong>${escapeHtml(note.title)}</strong><p>${note.done ? "已形成真实反馈" : escapeHtml(note.tags[0] ? `来自洞察：${note.tags[0]}` : "来自你的输入")}</p></div>
-        </article>`).join("") : `<div class="action-empty">洞察还没有转成行动。</div>`;
+        <article class="action-row work-queue-item${note.id === state.flashTaskId ? " status-flash" : ""}" data-note-id="${escapeHtml(note.id)}">
+            <button class="action-check" data-toggle-task="${escapeHtml(note.id)}" type="button" aria-label="标记完成"><svg><use href="#i-check" /></svg></button>
+            <div><strong>${escapeHtml(note.title)}</strong><p>${escapeHtml(note.tags[0] ? `来自洞察：${note.tags[0]}` : "来自你的输入")}</p></div>
+            <svg class="queue-arrow"><use href="#i-chevron" /></svg>
+        </article>`).join("") : `<div class="action-empty">当前没有待处理行动，可以从洞察中创建下一步。</div>`;
 }
 
 function renderLibrary() {
@@ -991,10 +1014,28 @@ function renderBoardCards(notes, done) {
 function renderWeekly() {
     const week = activeSources().filter((source) => isWithinDays(source.createdAt, 7));
     const lead = buildInsights()[0];
+    const tasks = activeNotes().filter((note) => note.type === "task" && isWithinDays(note.updatedAt, 7));
+    const done = tasks.filter((note) => note.done);
+    const rate = tasks.length ? Math.round((done.length / tasks.length) * 100) : 0;
+    const topics = [...new Set([lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, 4);
     document.querySelector("#weeklyTheme").textContent = lead.topic === "启动成本" ? "从“把事情想清楚”转向“先做出一个可以验证的版本”。" : `本周最稳定的思考主线是“${lead.topic}”，它正在影响你的行动选择。`;
     document.querySelector("#weeklyRepeatTitle").textContent = lead.topic;
     document.querySelector("#weeklyRepeatCopy").textContent = lead.detail;
-    document.querySelector("#weeklySourceCount").textContent = `基于 ${week.length} 条本周原始输入`;
+    setAnimatedNumber(document.querySelector("#weeklyHeaderInputs"), week.length);
+    setAnimatedNumber(document.querySelector("#weeklyHeaderDone"), done.length);
+    setAnimatedNumber(document.querySelector("#weeklyHeaderRate"), rate, "%");
+    setAnimatedNumber(document.querySelector("#weeklyInputCount"), week.length);
+    setAnimatedNumber(document.querySelector("#weeklyInsightScore"), lead.confidence);
+    setAnimatedNumber(document.querySelector("#weeklyDoneCount"), done.length);
+    document.querySelector("#weeklyEvidenceCount").textContent = `${lead.evidence} 条依据`;
+    document.querySelector("#weeklyEvidenceButton").dataset.openEvidence = lead.topic;
+    document.querySelector("#weeklyTopicList").innerHTML = topics.length ? topics.map((topic) => `<span>#${escapeHtml(topic)}</span>`).join("") : "<span>等待更多输入</span>";
+    document.querySelector("#weeklyProgressBar").style.width = `${rate}%`;
+    document.querySelector("#weeklyProgressLabel").textContent = `${rate}% 完成`;
+    document.querySelector("#weeklyActionCopy").textContent = done.length ? `本周已有 ${done.length} 个结果进入反馈，后续洞察会优先参考这些真实行动。` : "本周还缺少完成后的真实反馈，先完成一个最小行动再回来看结论。";
+    document.querySelector("#weeklyNextTitle").textContent = lead.topic === "启动成本" ? "把下一步缩小到 15 分钟" : `为“${lead.topic}”做一次最小验证`;
+    document.querySelector("#weeklyNextCopy").textContent = lead.topic === "启动成本" ? "连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。" : `用一个低成本行动验证“${lead.topic}”是否真的影响本周推进。`;
+    document.querySelector("#weeklySourceCount").textContent = `基于 ${week.length} 条本周输入与 ${tasks.length} 个行动`;
 }
 
 function renderRail(lead = buildInsights()[0]) {
@@ -1384,7 +1425,6 @@ el.authForm.addEventListener("submit", async (event) => {
 document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
 document.querySelectorAll("[data-view-link]").forEach((link) => link.addEventListener("click", (event) => { event.preventDefault(); switchView(link.dataset.viewLink); }));
 document.querySelectorAll("[data-view-jump]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.viewJump)));
-document.querySelector("#openWeekly").addEventListener("click", () => switchView("weekly"));
 document.querySelector("#quickCapture").addEventListener("click", () => openCapture());
 document.querySelectorAll("[data-open-capture]").forEach((button) => button.addEventListener("click", () => openCapture(button.dataset.openCapture || "idea")));
 document.querySelectorAll("[data-close-modal]").forEach((button) => button.addEventListener("click", closeCapture));
@@ -1529,7 +1569,10 @@ document.addEventListener("keydown", (event) => {
 
 el.runAnalysis.addEventListener("click", runAnalysis);
 document.querySelectorAll("[data-run-analysis]").forEach((button) => button.addEventListener("click", runAnalysis));
-el.heroCreateAction.addEventListener("click", createSuggestedAction);
+el.focusTaskOpen.addEventListener("click", () => {
+    if (el.focusTaskOpen.dataset.noteId) openNoteDetail(el.focusTaskOpen.dataset.noteId);
+    else openCapture("task");
+});
 el.aiTrigger.addEventListener("click", () => openAiRail(el.aiTrigger));
 el.railClose.addEventListener("click", () => closeAiRail());
 el.aiRailBackdrop.addEventListener("click", () => closeAiRail());
@@ -1596,12 +1639,20 @@ focusBoard.addEventListener("pointerleave", () => {
     focusBoard.style.setProperty("--board-y", "0px");
 });
 
+document.querySelector(".weekly-quadrants").addEventListener("pointermove", (event) => {
+    const quadrant = event.target.closest("[data-weekly-spotlight]");
+    if (!quadrant || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const bounds = quadrant.getBoundingClientRect();
+    quadrant.style.setProperty("--spot-x", `${event.clientX - bounds.left}px`);
+    quadrant.style.setProperty("--spot-y", `${event.clientY - bounds.top}px`);
+});
+
 const topbar = document.querySelector(".topbar");
 window.addEventListener("scroll", () => {
     topbar.classList.toggle("scrolled", window.scrollY > 18);
 }, { passive: true });
 document.querySelector("#copyWeekly").addEventListener("click", async () => {
-    const report = `Action 本周思考简报\n\n本周主线：${document.querySelector("#weeklyTheme").textContent}\n\n重复出现：${document.querySelector("#weeklyRepeatTitle").textContent}\n${document.querySelector("#weeklyRepeatCopy").textContent}\n\n下周实验：所有大任务先写 15 分钟版本。`;
+    const report = `Action 本周思考简报\n\n本周主线：${document.querySelector("#weeklyTheme").textContent}\n\n关键洞察：${document.querySelector("#weeklyRepeatTitle").textContent}\n${document.querySelector("#weeklyRepeatCopy").textContent}\n\n行动反馈：${document.querySelector("#weeklyActionCopy").textContent}\n\n下周实验：${document.querySelector("#weeklyNextTitle").textContent}\n${document.querySelector("#weeklyNextCopy").textContent}`;
     try {
         await navigator.clipboard.writeText(report);
         showToast("本周简报已复制");
