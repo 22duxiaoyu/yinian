@@ -5,18 +5,39 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta
             name="description"
-            content="一念是一款把零散想法提炼成洞察与行动的 AI 思考工作台。"
+            content="Action 是一款把零散想法提炼成洞察与行动的 AI 思考工作台。"
         />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="一念 · AI 思考工作台" />
+        <meta property="og:title" content="Action · AI 思考工作台" />
         <meta property="og:description" content="从零散输入中识别模式、追溯证据，并把洞察变成行动。" />
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
-        <title>一念 · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=moonstone-1" />
+        <title>Action · AI 思考工作台</title>
+        <link rel="stylesheet" href="./styles.css?v=action-17" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
+            <defs>
+                <linearGradient id="brandActionTile" x1="7" y1="5" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#f2efe7" />
+                    <stop offset="0.45" stop-color="#dce5e8" />
+                    <stop offset="1" stop-color="#8da1aa" />
+                </linearGradient>
+                <linearGradient id="brandActionPath" x1="12" y1="31" x2="39" y2="20" gradientUnits="userSpaceOnUse">
+                    <stop offset="0" stop-color="#2c3945" />
+                    <stop offset="0.58" stop-color="#516a78" />
+                    <stop offset="1" stop-color="#d7bd76" />
+                </linearGradient>
+            </defs>
+            <symbol id="brand-action-mark" viewBox="0 0 48 48">
+                <rect width="48" height="48" rx="13" fill="url(#brandActionTile)" />
+                <path d="M14.5 30.4c0-9.1 6.7-15.9 15.4-15.9 3.5 0 6.8 1.1 9.2 3.2" fill="none" stroke="#627b88" stroke-width="4.2" stroke-linecap="round" opacity=".36" />
+                <path d="M13.6 30.1 23.5 20c2.3-2.4 6.1-2.4 8.5-.1l3.9 3.8" fill="none" stroke="url(#brandActionPath)" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M23.6 30.1h12.2" fill="none" stroke="#2c3945" stroke-width="7.4" stroke-linecap="round" />
+                <path d="m31.7 23.6 6.7 6.5-6.7 6.5" fill="none" stroke="#2c3945" stroke-width="7.4" stroke-linecap="round" stroke-linejoin="round" />
+                <circle cx="13.6" cy="30.1" r="3.2" fill="#d7bd76" />
+                <circle cx="13.6" cy="30.1" r="1.25" fill="#fff7d8" />
+            </symbol>
             <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
             <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8" /><path d="M5 10v10h14V10M9 20v-6h6v6" /></symbol>
             <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 4h16v16H4z" /><path d="M4 13h5l2 3h2l2-3h5" /></symbol>
@@ -44,11 +65,11 @@
             <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></symbol>
         </svg>
 
-        <section class="auth-screen" id="authScreen" aria-label="进入一念">
+        <section class="auth-screen" id="authScreen" aria-label="进入 Action">
             <div class="auth-showcase" aria-hidden="true">
                 <div class="auth-showcase-head">
-                    <span class="mini-logo">念</span>
-                    <span>AI Thinking Workspace</span>
+                    <span class="mini-logo action-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#brand-action-mark" /></svg></span>
+                    <span>Action Thinking Workspace</span>
                 </div>
                 <div class="auth-insight">
                     <div class="auth-orbit"><span></span><i></i><b></b></div>
@@ -65,10 +86,10 @@
             </div>
             <div class="auth-entry">
                 <div class="auth-entry-inner">
-                    <div class="mobile-auth-brand"><span class="mini-logo">念</span><strong>一念</strong></div>
+                    <div class="mobile-auth-brand"><span class="mini-logo action-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#brand-action-mark" /></svg></span><strong>Action</strong></div>
                     <p class="overline">欢迎回来</p>
                     <h1>让每一个念头，<br />都有下一步。</h1>
-                    <p class="auth-lead">一念会从你的零散记录中提炼模式、标记证据，并把洞察变成可执行的行动。</p>
+                    <p class="auth-lead">Action 会从你的零散记录中提炼模式、标记证据，并把洞察变成可执行的行动。</p>
                     <button class="demo-button" id="demoButton" type="button">
                         <span>体验完整示例</span>
                         <svg><use href="#i-arrow" /></svg>
@@ -93,9 +114,9 @@
         <div class="app-shell" id="appShell">
             <aside class="sidebar" id="sidebar" aria-label="主导航">
                 <div class="brand-row">
-                    <a class="brand" href="#" data-view-link="overview" aria-label="一念首页">
-                        <span class="brand-logo">念</span>
-                        <span><strong>一念</strong><small>AI 思考工作台</small></span>
+                    <a class="brand" href="#" data-view-link="overview" aria-label="Action 首页">
+                        <span class="brand-logo action-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#brand-action-mark" /></svg></span>
+                        <span><strong>Action</strong><small>AI 思考工作台</small></span>
                     </a>
                     <button class="icon-button sidebar-close" id="sidebarClose" type="button" title="关闭导航"><svg><use href="#i-x" /></svg></button>
                 </div>
@@ -108,7 +129,7 @@
 
                 <nav class="main-nav" aria-label="工作区导航">
                     <button class="nav-item active" data-view="overview" type="button"><svg><use href="#i-home" /></svg><span>工作台</span></button>
-                    <button class="nav-item" data-view="library" type="button"><svg><use href="#i-inbox" /></svg><span>输入库</span><em id="navSignalCount">0</em></button>
+                    <button class="nav-item" data-view="library" type="button"><svg><use href="#i-inbox" /></svg><span>灵感库</span><em id="navSignalCount">0</em></button>
                     <button class="nav-item" data-view="insights" type="button"><svg><use href="#i-spark" /></svg><span>洞察</span><em id="navInsightCount">3</em></button>
                     <button class="nav-item" data-view="actions" type="button"><svg><use href="#i-check" /></svg><span>行动</span><em id="navActionCount">0</em></button>
                     <button class="nav-item" data-view="weekly" type="button"><svg><use href="#i-file" /></svg><span>周报</span></button>
@@ -139,9 +160,10 @@
             <main class="main-stage">
                 <header class="topbar">
                     <button class="icon-button mobile-menu" id="mobileMenu" type="button" title="打开导航"><svg><use href="#i-menu" /></svg></button>
-                    <div class="breadcrumb"><span id="breadcrumbParent">一念</span><svg><use href="#i-chevron" /></svg><strong id="breadcrumbCurrent">工作台</strong></div>
+                    <div class="breadcrumb"><span id="breadcrumbParent">Action</span><svg><use href="#i-chevron" /></svg><strong id="breadcrumbCurrent">工作台</strong></div>
                     <div class="topbar-actions">
                         <button class="search-trigger" id="searchTrigger" type="button"><svg><use href="#i-search" /></svg><span>搜索想法</span><kbd>⌘ K</kbd></button>
+                        <button class="ai-trigger" id="aiTrigger" type="button" aria-controls="aiRail" aria-expanded="false"><svg><use href="#i-spark" /></svg><span>与 Action 对话</span></button>
                         <button class="icon-button" type="button" title="通知"><svg><use href="#i-bell" /></svg><span class="notification-dot"></span></button>
                         <button class="primary-button compact" id="quickCapture" type="button"><svg><use href="#i-plus" /></svg><span>快速输入</span></button>
                     </div>
@@ -166,27 +188,21 @@
                                 <div class="section-kicker"><span>当前关注</span><span class="confidence"><i></i>综合置信度 <strong id="heroConfidence">86%</strong></span></div>
                                 <h2 id="heroInsight">你不是缺少计划，而是启动动作太大。</h2>
                                 <p id="heroInsightDetail">最近多条记录都指向同一个摩擦点：当任务需要先搭完整框架时，你更容易延迟开始。把第一步压缩到 15 分钟，完成率明显提高。</p>
-                                <div class="evidence-row" id="heroEvidence">
-                                    <button type="button" data-open-evidence="启动成本"><svg><use href="#i-link" /></svg><span>6 条证据</span></button>
-                                    <span>覆盖过去 7 天</span>
-                                    <span>更新于刚刚</span>
+                                <div class="focus-footer" id="heroEvidence">
+                                    <div class="focus-actions">
+                                        <button class="focus-evidence-button" type="button" data-open-evidence="启动成本"><svg><use href="#i-link" /></svg><span>查看 6 条证据</span></button>
+                                        <button class="focus-action-button" id="heroCreateAction" type="button"><svg><use href="#i-arrow" /></svg><span>转成行动</span></button>
+                                    </div>
+                                    <div class="focus-meta"><span>过去 7 天</span><span>刚刚更新</span></div>
                                 </div>
-                            </div>
-                            <div class="focus-visual" aria-label="洞察关系图">
-                                <div class="signal-node node-a"><i></i><span>计划过大</span></div>
-                                <div class="signal-node node-b"><i></i><span>延迟启动</span></div>
-                                <div class="signal-node node-c"><i></i><span>15 分钟</span></div>
-                                <div class="core-node"><svg><use href="#i-brain" /></svg><strong>启动成本</strong><span>核心模式</span></div>
-                                <span class="connector line-a"></span><span class="connector line-b"></span><span class="connector line-c"></span>
                             </div>
                         </section>
 
-                        <section class="metric-band" aria-label="空间数据概览">
-                            <div class="metric-item"><span>本周输入</span><strong id="metricWeekSignals">0</strong><small id="metricWeekDelta">+0 较上周</small></div>
-                            <div class="metric-item"><span>有效洞察</span><strong id="metricInsights">3</strong><small>2 条已确认</small></div>
-                            <div class="metric-item"><span>行动转化</span><strong id="metricConversion">0%</strong><small>目标 60%</small></div>
-                            <div class="metric-item chart-metric"><span>思考活跃度</span><div class="mini-bars" id="activityBars" aria-label="近七天活跃度"></div></div>
-                        </section>
+                        <nav class="workflow-strip" aria-label="从灵感到行动的工作流">
+                            <button data-view-jump="library" type="button"><span>01 / 输入</span><strong id="metricWeekSignals">0</strong><small id="metricWeekDelta">查看本周灵感</small><svg><use href="#i-arrow" /></svg></button>
+                            <button data-view-jump="insights" type="button"><span>02 / 洞察</span><strong id="metricInsights">0</strong><small>核对结论与原始依据</small><svg><use href="#i-arrow" /></svg></button>
+                            <button data-view-jump="actions" type="button"><span>03 / 行动</span><strong id="workflowActionCount">0</strong><small>推进可验证的下一步</small><svg><use href="#i-arrow" /></svg></button>
+                        </nav>
 
                         <div class="overview-columns">
                             <section class="content-section signal-section">
@@ -208,8 +224,14 @@
 
                     <section class="app-view" id="view-library" data-view-panel="library">
                         <div class="page-heading compact-heading">
-                            <div><p class="overline">CAPTURE LIBRARY</p><h1>输入库</h1><p>所有原始想法都保留在这里，AI 洞察不会覆盖你的表达。</p></div>
-                            <button class="primary-button" data-open-capture type="button"><svg><use href="#i-plus" /></svg><span>添加输入</span></button>
+                            <div><p class="overline">INSPIRATION LIBRARY</p><h1>灵感库</h1><p>所有原始想法都保留在这里，AI 洞察不会覆盖你的表达。</p></div>
+                            <div class="heading-actions library-heading-actions">
+                                <button class="primary-button" data-open-capture type="button"><svg><use href="#i-plus" /></svg><span>记录灵感</span></button>
+                                <label class="outline-button document-upload" for="documentImportInput">
+                                    <svg><use href="#i-upload" /></svg><span>导入</span>
+                                    <input id="documentImportInput" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple />
+                                </label>
+                            </div>
                         </div>
                         <div class="library-toolbar">
                             <div class="inline-search"><svg><use href="#i-search" /></svg><input id="librarySearch" placeholder="搜索标题、内容或标签" /></div>
@@ -222,22 +244,22 @@
                             </div>
                             <select id="sortSelect" aria-label="排序"><option value="newest">最近更新</option><option value="oldest">最早创建</option><option value="longest">内容最多</option></select>
                         </div>
-                        <div class="library-summary"><strong id="libraryCount">0 条输入</strong><span id="librarySummary">正在形成你的个人思考语料库</span></div>
-                        <div class="library-list" id="libraryList"></div>
+                        <div class="library-summary"><strong id="libraryCount">0 条灵感</strong><span id="librarySummary">正在形成你的个人灵感语料库</span></div>
+                        <div class="library-list" id="libraryList" aria-live="polite"></div>
                     </section>
 
                     <section class="app-view" id="view-insights" data-view-panel="insights">
                         <div class="page-heading compact-heading">
-                            <div><p class="overline">AI SYNTHESIS</p><h1>洞察</h1><p>每条结论都展示证据、置信度与待验证假设。</p></div>
-                            <button class="primary-button" data-run-analysis type="button"><svg><use href="#i-spark" /></svg><span>重新分析</span></button>
+                            <div><p class="overline">AI SYNTHESIS</p><h1>洞察</h1><p>从灵感库中找出重复信号，整理成可检查的结论和下一步。</p></div>
+                            <button class="primary-button" data-run-analysis type="button"><svg><use href="#i-spark" /></svg><span>用 AI 做洞察</span></button>
                         </div>
                         <div class="insight-hero">
-                            <div><span>本周共识</span><h2 id="insightConsensus">真正影响推进速度的，不是任务数量，而是第一步是否足够明确。</h2></div>
+                            <div><div class="insight-hero-kicker"><span>最值得优先处理</span><em id="insightSourceSummary">0 条内容 · 最近 14 天</em></div><h2 id="insightConsensus">真正影响推进速度的，不是任务数量，而是第一步是否足够明确。</h2><p id="insightConsensusDetail">系统会把结论与原始依据连接起来，最终判断仍由你完成。</p><div class="insight-hero-actions"><button class="insight-evidence-button" id="insightLeadEvidence" type="button">查看依据 <svg><use href="#i-arrow" /></svg></button><button class="insight-action-button" data-open-capture="task" type="button">转成行动 <svg><use href="#i-arrow" /></svg></button></div></div>
                             <div class="confidence-ring" style="--score:86"><strong id="insightScore">86</strong><span>可信度</span></div>
                         </div>
-                        <div class="insight-grid" id="insightGrid"></div>
+                        <section class="insight-secondary"><div class="section-head"><div><p class="overline">SECONDARY SIGNAL</p><h2>补充观察</h2></div><span class="section-count" id="insightSecondaryCount">1 条</span></div><div class="insight-grid" id="insightGrid"></div></section>
                         <section class="assumption-section">
-                            <div class="section-head"><div><p class="overline">HUMAN IN THE LOOP</p><h2>待你判断的假设</h2></div><span class="section-count">保留最终决策权</span></div>
+                            <div class="section-head"><div><p class="overline">HUMAN IN THE LOOP</p><h2>需要你确认</h2></div><span class="section-count">AI 不替你做决定</span></div>
                             <div class="assumption-table" id="assumptionTable"></div>
                         </section>
                     </section>
@@ -260,11 +282,11 @@
 
                     <section class="app-view" id="view-weekly" data-view-panel="weekly">
                         <div class="page-heading compact-heading">
-                            <div><p class="overline">WEEKLY BRIEF</p><h1>本周思考简报</h1><p id="weeklyRange">本周</p></div>
+                            <div><p class="overline">WEEKLY BRIEF</p><h1>本周思考简报</h1><p><span id="weeklyRange">本周</span><span class="weekly-live-status"><i></i>随输入实时更新</span></p></div>
                             <button class="outline-button" id="copyWeekly" type="button"><svg><use href="#i-download" /></svg><span>复制简报</span></button>
                         </div>
                         <article class="weekly-report">
-                            <header><span>YINIAN / WEEKLY 01</span><strong id="weeklyDate">--</strong></header>
+                            <header><span>ACTION / WEEKLY 01</span><strong id="weeklyDate">--</strong></header>
                             <section class="weekly-opening"><p>本周主线</p><h2 id="weeklyTheme">从“把事情想清楚”转向“先做出一个可以验证的版本”。</h2></section>
                             <div class="weekly-grid">
                                 <section><span>01 / 重复出现</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p></section>
@@ -272,13 +294,13 @@
                                 <section><span>03 / 未解决张力</span><h3>质量与速度仍在拉扯</h3><p>“先完成”和“做高级”频繁同时出现。下周值得明确一个可接受的质量下限。</p></section>
                                 <section class="weekly-next"><span>04 / 下周实验</span><h3>所有大任务先写 15 分钟版本</h3><p>连续测试 5 天，记录实际开始时间和完成感受，用数据判断它是否真的有效。</p><button data-open-capture="task" type="button">加入行动 <svg><use href="#i-arrow" /></svg></button></section>
                             </div>
-                            <footer><span id="weeklySourceCount">基于 0 条原始输入</span><span>由一念本地洞察引擎生成</span></footer>
+                            <footer><span id="weeklySourceCount">基于 0 条原始输入</span><span>由 Action 本地洞察引擎生成</span></footer>
                         </article>
                     </section>
 
                     <section class="app-view" id="view-method" data-view-panel="method">
                         <div class="page-heading compact-heading method-heading">
-                            <div><p class="overline">PRODUCT CASE FILE / 2026</p><h1>一念的产品方法</h1><p>这不是功能清单，而是一套围绕“从混乱到行动”建立的 AI 产品决策。</p></div>
+                            <div><p class="overline">PRODUCT CASE FILE / 2026</p><h1>Action 的产品方法</h1><p>这不是功能清单，而是一套围绕“从混乱到行动”建立的 AI 产品决策。</p></div>
                             <span class="case-badge">AI PM PORTFOLIO</span>
                         </div>
                         <section class="case-intro">
@@ -306,9 +328,13 @@
                 </div>
             </main>
 
-            <aside class="ai-rail" id="aiRail" aria-label="AI 协作面板">
-                <header><div><span class="ai-mark"><svg><use href="#i-spark" /></svg></span><span><strong>一念 AI</strong><small id="aiStatusText">已理解当前空间</small></span></div><button class="icon-button rail-close" id="railClose" type="button" title="关闭面板"><svg><use href="#i-x" /></svg></button></header>
-                <div class="reasoning-card">
+            <div class="ai-rail-backdrop" id="aiRailBackdrop" hidden></div>
+            <aside class="ai-rail" id="aiRail" aria-label="AI 协作面板" aria-hidden="true">
+                <header><div><span class="ai-mark"><svg><use href="#i-spark" /></svg></span><span><strong>Action AI</strong><small id="aiStatusText">已理解当前空间</small></span></div><button class="icon-button rail-close" id="railClose" type="button" title="关闭面板"><svg><use href="#i-x" /></svg></button></header>
+                <div class="ai-composer ai-composer-primary"><label for="aiQuestion">直接问 Action</label><div><textarea id="aiQuestion" rows="2" placeholder="输入问题，或让 Action 帮你梳理当前思路…"></textarea><button id="askAi" type="button" title="发送"><svg><use href="#i-send" /></svg></button></div><p>回答会引用你的原始记录，不会修改原文。</p></div>
+                <section class="rail-insight"><span class="rail-label">AI 建议</span><h2 id="railSuggestion">把“开始做作品集”缩小为“先写出第一屏要证明什么”。</h2><p>这个动作足够小，又能直接验证你的产品叙事是否清晰。</p><button id="acceptSuggestion" type="button"><span>转成行动</span><svg><use href="#i-arrow" /></svg></button></section>
+                <section class="rail-evidence"><div class="rail-section-head"><span>这条建议的依据</span><button data-open-evidence="启动成本" type="button">查看全部</button></div><div id="railEvidenceList"></div></section>
+                <div class="reasoning-card" aria-hidden="true">
                     <div class="reasoning-head"><span>本次分析路径</span><em id="analysisTime">刚刚</em></div>
                     <div class="reasoning-steps" id="reasoningSteps">
                         <div class="complete"><i><svg><use href="#i-check" /></svg></i><span><strong>读取输入</strong><small id="reasonInputCount">已读取 0 条有效记录</small></span></div>
@@ -316,10 +342,6 @@
                         <div class="complete"><i><svg><use href="#i-check" /></svg></i><span><strong>交叉验证</strong><small>排除 2 条弱相关表达</small></span></div>
                     </div>
                 </div>
-                <section class="rail-insight"><span class="rail-label">AI 建议</span><h2 id="railSuggestion">把“开始做作品集”缩小为“先写出第一屏要证明什么”。</h2><p>这个动作足够小，又能直接验证你的产品叙事是否清晰。</p><button id="acceptSuggestion" type="button"><span>转成行动</span><svg><use href="#i-arrow" /></svg></button></section>
-                <section class="rail-evidence"><div class="rail-section-head"><span>主要依据</span><button data-open-evidence="启动成本" type="button">查看全部</button></div><div id="railEvidenceList"></div></section>
-                <div class="rail-spacer"></div>
-                <div class="ai-composer"><label for="aiQuestion">继续追问</label><div><textarea id="aiQuestion" rows="2" placeholder="例如：为什么你认为这是主要问题？"></textarea><button id="askAi" type="button" title="发送"><svg><use href="#i-send" /></svg></button></div><p>AI 回答会引用你的原始记录。</p></div>
             </aside>
         </div>
 
@@ -338,20 +360,41 @@
             </section>
         </div>
 
-        <div class="drawer-backdrop" id="detailBackdrop" hidden></div>
-        <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
-            <header><span id="detailType">原始输入</span><button class="icon-button" id="closeDetail" type="button" title="关闭"><svg><use href="#i-x" /></svg></button></header>
-            <div class="detail-body" id="detailBody"></div>
-        </aside>
+        <div class="drawer-backdrop" id="detailBackdrop" hidden>
+            <section class="detail-drawer" id="detailDrawer" role="dialog" aria-modal="true" aria-labelledby="detailHeading" aria-hidden="true">
+                <header><span id="detailType">原始输入</span><div class="detail-header-controls"><button class="detail-task-toggle" id="detailTaskToggle" type="button" hidden><svg><use href="#i-check" /></svg><span>标记完成</span></button><button class="icon-button" id="closeDetail" type="button" title="关闭"><svg><use href="#i-x" /></svg></button></div></header>
+                <div class="detail-body" id="detailBody"></div>
+            </section>
+        </div>
 
         <div class="command-backdrop" id="commandPalette" hidden>
-            <section class="command-palette" role="dialog" aria-modal="true" aria-label="搜索一念">
+            <section class="command-palette" role="dialog" aria-modal="true" aria-label="搜索 Action">
                 <div class="command-input"><svg><use href="#i-search" /></svg><input id="commandSearch" placeholder="搜索输入、洞察或行动" /><kbd>ESC</kbd></div>
                 <div class="command-results" id="commandResults"></div>
             </section>
         </div>
 
+        <div class="operation-feedback" id="operationFeedback" aria-hidden="true">
+            <div class="operation-feedback-card" role="status" aria-live="polite">
+                <span class="operation-orb" aria-hidden="true">
+                    <span class="operation-ring"></span>
+                    <svg><use href="#i-check" /></svg>
+                    <span class="operation-dash"></span>
+                </span>
+                <strong id="operationFeedbackText">已完成</strong>
+            </div>
+        </div>
+        <div class="analysis-overlay" id="analysisOverlay" aria-hidden="true">
+            <div class="analysis-overlay-card" role="status" aria-live="polite">
+                <div class="analysis-core" aria-hidden="true"><span></span><svg><use href="#i-spark" /></svg></div>
+                <span class="analysis-kicker">ACTION AI</span>
+                <strong id="analysisOverlayTitle">正在整理你的灵感</strong>
+                <p id="analysisOverlayDetail">读取灵感与导入文档</p>
+                <div class="analysis-progress"><span id="analysisProgressBar"></span></div>
+                <div class="analysis-stage-dots" id="analysisStageDots"><i class="active"></i><i></i><i></i></div>
+            </div>
+        </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
-        <script src="./app.js?v=3"></script>
+        <script src="./app.js?v=17"></script>
     </body>
 </html>
