@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-20" />
+        <link rel="stylesheet" href="./styles.css?v=action-21" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -288,9 +288,9 @@
                             <div><p class="overline">WEEKLY BRIEF</p><h1>本周思考简报</h1><p><span id="weeklyRange">本周</span><span class="weekly-live-status"><i></i>随输入实时更新</span></p></div>
                             <button class="outline-button" id="copyWeekly" type="button"><svg><use href="#i-download" /></svg><span>复制简报</span></button>
                         </div>
-                        <article class="weekly-report weekly-map-report">
-                            <header><span>ACTION / WEEKLY MAP</span><strong id="weeklyDate">--</strong></header>
-                            <section class="weekly-map-intro"><div><p>本周复盘地图</p><h2>一张图看清本周发生了什么。</h2><span>中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。</span></div><dl><div><dt>本周输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成行动</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动完成率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl></section>
+                        <article class="weekly-report weekly-map-report" data-layout="balanced" data-has-actions="true">
+                            <header><span>ACTION / WEEKLY MAP <em id="weeklyLayoutLabel">AI 标准布局</em></span><strong id="weeklyDate">--</strong></header>
+                            <section class="weekly-map-intro"><div><p>本周复盘地图</p><h2>一张图看清本周发生了什么。</h2><span id="weeklyLayoutSummary">中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。</span></div><dl><div><dt>本周输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成行动</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动完成率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl></section>
                             <section class="weekly-mindmap-section">
                                 <div class="weekly-mindmap-heading"><span>MIND MAP / WEEKLY 01</span><strong>输入、判断、行动与下一步</strong></div>
                                 <div class="weekly-mindmap">
@@ -298,11 +298,11 @@
                                     <div class="weekly-map-node input"><span>本周输入</span><strong><b id="weeklyInputCount">0</b> 条内容</strong><div class="weekly-topic-list" id="weeklyTopicList"></div></div>
                                     <div class="weekly-map-node insight"><span>关键洞察</span><strong id="weeklyMapInsight">启动成本</strong><small><b id="weeklyInsightScore">86</b>% 可信 · <em id="weeklyEvidenceCount">0 条依据</em></small></div>
                                     <div class="weekly-map-core"><span>本周核心判断</span><h3 id="weeklyTheme">从“把事情想清楚”转向“先做出一个可以验证的版本”。</h3></div>
-                                    <div class="weekly-map-node action"><span>行动结果</span><strong><b id="weeklyDoneCount">0</b> 个完成</strong><small id="weeklyProgressLabel">0% 完成</small></div>
+                                    <div class="weekly-map-node action" id="weeklyActionNode"><span>行动结果</span><strong><b id="weeklyDoneCount">0</b> 个完成</strong><small id="weeklyProgressLabel">0% 完成</small></div>
                                     <div class="weekly-map-node next"><span>下周实验</span><strong id="weeklyNextTitle">把下一步缩小到 15 分钟</strong><small>持续 5 天 · 每天 15 分钟</small></div>
                                 </div>
                             </section>
-                            <section class="weekly-map-reference"><div><span>为什么得出这个判断</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p><button id="weeklyEvidenceButton" data-open-evidence="启动成本" type="button">查看原始依据 <svg><use href="#i-arrow" /></svg></button><div><strong>行动反馈</strong><p id="weeklyActionCopy">行动结果会反过来验证本周的判断，而不只是增加完成数量。</p></div></div><aside><span>NEXT EXPERIMENT</span><h3>怎么验证</h3><p id="weeklyNextCopy">连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。</p><dl><div><dt>观察指标</dt><dd>实际开始时间</dd></div><div><dt>成功标准</dt><dd>开始更快且能完成</dd></div></dl><button data-open-capture="task" type="button">加入下周行动 <svg><use href="#i-arrow" /></svg></button></aside></section>
+                            <section class="weekly-map-reference"><div><span>为什么得出这个判断</span><h3 id="weeklyRepeatTitle">启动成本</h3><p id="weeklyRepeatCopy">当第一步过大，计划会制造更多压力；当动作缩小，推进速度明显提高。</p><button id="weeklyEvidenceButton" data-open-evidence="启动成本" type="button">查看原始依据 <svg><use href="#i-arrow" /></svg></button><div class="weekly-action-summary"><strong>行动反馈</strong><p id="weeklyActionCopy">行动结果会反过来验证本周的判断，而不只是增加完成数量。</p></div><div class="weekly-evidence-samples" id="weeklyEvidenceSamples"></div></div><aside><span>NEXT EXPERIMENT</span><h3>怎么验证</h3><p id="weeklyNextCopy">连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。</p><dl><div><dt>观察指标</dt><dd>实际开始时间</dd></div><div><dt>成功标准</dt><dd>开始更快且能完成</dd></div></dl><button data-open-capture="task" type="button">加入下周行动 <svg><use href="#i-arrow" /></svg></button></aside></section>
                             <footer><span id="weeklySourceCount">基于 0 条本周输入</span><span>内容随输入和行动结果实时更新</span></footer>
                         </article>
                     </section>
@@ -404,6 +404,6 @@
             </div>
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
-        <script src="./app.js?v=20"></script>
+        <script src="./app.js?v=21"></script>
     </body>
 </html>

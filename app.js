@@ -1018,7 +1018,21 @@ function renderWeekly() {
     const tasks = activeNotes().filter((note) => note.type === "task" && isWithinDays(note.updatedAt, 7));
     const done = tasks.filter((note) => note.done);
     const rate = tasks.length ? Math.round((done.length / tasks.length) * 100) : 0;
-    const topics = [...new Set([lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, 4);
+    const layout = week.length <= 3 ? "sparse" : week.length >= 9 ? "dense" : "balanced";
+    const topicLimit = layout === "dense" ? 6 : layout === "sparse" ? 2 : 4;
+    const topics = [...new Set([lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, topicLimit);
+    const weeklyEvidence = getEvidence(lead.topic).filter((source) => isWithinDays(source.createdAt, 7));
+    const evidencePool = weeklyEvidence.length ? weeklyEvidence : getEvidence(lead.topic);
+    const evidenceLimit = layout === "dense" ? 4 : layout === "sparse" ? 1 : 2;
+    const report = document.querySelector(".weekly-map-report");
+    report.dataset.layout = layout;
+    report.dataset.hasActions = String(tasks.length > 0);
+    document.querySelector("#weeklyLayoutLabel").textContent = layout === "sparse" ? "AI 精简布局" : layout === "dense" ? "AI 深度布局" : "AI 标准布局";
+    document.querySelector("#weeklyLayoutSummary").textContent = layout === "sparse"
+        ? "本周信息量较少，先保留核心判断与最关键的依据，避免过度总结。"
+        : layout === "dense"
+          ? "本周输入较多，AI 已展开更多主题和原始证据，帮助你检查结论是否可靠。"
+          : "中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。";
     document.querySelector("#weeklyTheme").textContent = lead.topic === "启动成本" ? "从“把事情想清楚”转向“先做出一个可以验证的版本”。" : `本周最稳定的思考主线是“${lead.topic}”，它正在影响你的行动选择。`;
     document.querySelector("#weeklyRepeatTitle").textContent = lead.topic;
     document.querySelector("#weeklyMapInsight").textContent = lead.topic;
@@ -1032,10 +1046,16 @@ function renderWeekly() {
     document.querySelector("#weeklyEvidenceCount").textContent = `${lead.evidence} 条依据`;
     document.querySelector("#weeklyEvidenceButton").dataset.openEvidence = lead.topic;
     document.querySelector("#weeklyTopicList").innerHTML = topics.length ? topics.map((topic) => `<span>#${escapeHtml(topic)}</span>`).join("") : "<span>等待更多输入</span>";
-    document.querySelector("#weeklyProgressLabel").textContent = `${rate}% 完成`;
+    document.querySelector("#weeklyProgressLabel").textContent = tasks.length ? `${rate}% 完成` : "等待行动反馈";
     document.querySelector("#weeklyActionCopy").textContent = done.length ? `本周已有 ${done.length} 个结果进入反馈，后续洞察会优先参考这些真实行动。` : "本周还缺少完成后的真实反馈，先完成一个最小行动再回来看结论。";
     document.querySelector("#weeklyNextTitle").textContent = lead.topic === "启动成本" ? "把下一步缩小到 15 分钟" : `为“${lead.topic}”做一次最小验证`;
     document.querySelector("#weeklyNextCopy").textContent = lead.topic === "启动成本" ? "连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。" : `用一个低成本行动验证“${lead.topic}”是否真的影响本周推进。`;
+    document.querySelector("#weeklyEvidenceSamples").innerHTML = evidencePool.slice(0, evidenceLimit).map((source) => `
+        <article ${source.sourceKind === "document" ? `data-document-id="${escapeHtml(source.sourceId)}"` : `data-note-id="${escapeHtml(source.sourceId)}"`}>
+            <span>${source.sourceKind === "document" ? escapeHtml(source.documentKind) : typeLabels[source.type]}</span>
+            <strong>${escapeHtml(source.title)}</strong>
+            <p>${escapeHtml(summarize(source.content, 58))}</p>
+        </article>`).join("");
     document.querySelector("#weeklySourceCount").textContent = `基于 ${week.length} 条本周输入与 ${tasks.length} 个行动`;
 }
 
