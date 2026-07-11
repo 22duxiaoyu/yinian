@@ -3198,6 +3198,93 @@ body.analysis-running { overflow: hidden; }
     .weekly-quadrant::before { display: none; }
 }
 
+/* Weekly decision memo: editorial, static, and evidence-led. */
+#view-weekly.motion-enter > * { opacity: 1; animation: none; transform: none; filter: none; }
+.weekly-memo { border: 1px solid rgba(255,255,255,.72); border-radius: 20px; background: rgba(249,250,251,.72); box-shadow: 0 28px 80px rgba(43,53,63,.12),inset 0 1px rgba(255,255,255,.94); }
+.weekly-memo > header { min-height: 58px; border-bottom-color: rgba(69,82,94,.12); background: rgba(255,255,255,.34); padding: 0 34px; letter-spacing: .12em; }
+.weekly-memo-lead { min-height: 270px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 48px; padding: 42px 46px; }
+.weekly-memo-lead > div { max-width: 760px; }
+.weekly-memo-lead p { margin: 0 0 16px; color: #5d7488; font-size: 9px; font-weight: 850; letter-spacing: .12em; }
+.weekly-memo-lead h2 { margin: 0; color: #171c21; font-size: 33px; line-height: 1.38; font-weight: 610; }
+.weekly-memo-lead > div > span { display: block; max-width: 650px; margin-top: 17px; color: #77818a; font-size: 10px; line-height: 1.7; }
+.weekly-memo-stats { min-width: 300px; margin: 0; display: grid; grid-template-columns: repeat(3,1fr); }
+.weekly-memo-stats > div { min-width: 0; border-left: 1px solid rgba(69,82,94,.13); padding: 7px 0 7px 18px; }
+.weekly-memo-stats dt { color: #7a858f; font-size: 8px; line-height: 1.4; }
+.weekly-memo-stats dd { margin: 10px 0 0; color: #20272e; font-size: 24px; font-weight: 780; font-variant-numeric: tabular-nums; }
+.weekly-story { border-top: 1px solid rgba(69,82,94,.12); border-bottom: 1px solid rgba(69,82,94,.12); background: rgba(226,232,236,.34); padding: 31px 38px 34px; }
+.weekly-story-heading { display: grid; grid-template-columns: 190px minmax(0,1fr); align-items: end; gap: 22px; }
+.weekly-story-heading > span { color: #60788d; font-size: 8px; font-weight: 850; letter-spacing: .13em; }
+.weekly-story-heading h3 { margin: 0; color: #20272e; font-size: 19px; }
+.weekly-story-heading p { margin: 7px 0 0; color: #79838c; font-size: 9px; }
+.weekly-story-track { display: grid; grid-template-columns: 1fr 30px 1fr 30px 1fr 30px 1fr; align-items: center; margin-top: 28px; }
+.weekly-story-track > div { min-width: 0; min-height: 105px; border-top: 2px solid #8193a1; padding: 15px 8px 0 0; }
+.weekly-story-track > i { position: relative; width: 100%; height: 1px; background: rgba(81,103,119,.28); }
+.weekly-story-track > i::after { position: absolute; right: 0; top: 50%; width: 6px; height: 6px; border-top: 1px solid #6b8191; border-right: 1px solid #6b8191; content: ""; transform: translateY(-50%) rotate(45deg); }
+.weekly-story-track span { color: #72818d; font-size: 8px; font-weight: 820; }
+.weekly-story-track strong { display: block; margin-top: 13px; overflow: hidden; color: #252c33; font-size: 15px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.weekly-story-track strong b { font-size: 24px; }
+.weekly-story-track small { display: block; margin-top: 8px; color: #89929a; font-size: 8px; }
+.weekly-story-track .weekly-topic-list { margin-top: 8px; flex-wrap: nowrap; overflow: hidden; }
+.weekly-story-track .weekly-topic-list span { border: 0; background: transparent; color: #6b7e8e; padding: 0 7px 0 0; white-space: nowrap; }
+.weekly-memo-body { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(320px,.65fr); }
+.weekly-analysis-note { min-height: 390px; display: grid; grid-template-columns: 48px minmax(0,1fr); gap: 24px; padding: 42px 44px; }
+.weekly-section-number { color: #81909c; font-size: 10px; font-weight: 850; }
+.weekly-analysis-copy > span { color: #60788c; font-size: 8px; font-weight: 850; letter-spacing: .1em; }
+.weekly-analysis-copy h3 { margin: 17px 0 12px; color: #171d22; font-size: 27px; line-height: 1.3; }
+.weekly-analysis-copy > p { max-width: 700px; margin: 0; color: #65717b; font-size: 11px; line-height: 1.82; }
+.weekly-evidence-line { max-width: 700px; border-top: 1px solid rgba(69,82,94,.11); border-bottom: 1px solid rgba(69,82,94,.11); display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin-top: 25px; padding: 16px 0; }
+.weekly-evidence-line > strong { color: #526d82; font-size: 19px; }
+.weekly-evidence-line > span { color: #818b94; font-size: 8px; }
+.weekly-evidence-line button { min-height: 30px; border: 0; background: transparent; color: #526d82; display: inline-flex; align-items: center; gap: 7px; padding: 0; font-size: 9px; font-weight: 780; }
+.weekly-evidence-line button svg { width: 13px; height: 13px; }
+.weekly-action-note { display: grid; grid-template-columns: 88px minmax(0,1fr); gap: 16px; margin-top: 24px; }
+.weekly-action-note span { color: #667d90; font-size: 8px; font-weight: 820; }
+.weekly-action-note p { margin: 0; color: #7a858e; font-size: 9px; line-height: 1.7; }
+.weekly-next-panel { min-height: 390px; background: #252f37; color: #fff; padding: 42px 36px; }
+.weekly-next-panel > div:first-child { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.weekly-next-panel > div:first-child span { color: #d9c483; font-size: 8px; font-weight: 850; letter-spacing: .12em; }
+.weekly-next-panel > div:first-child em { color: rgba(255,255,255,.42); font-size: 8px; font-style: normal; }
+.weekly-next-panel h3 { margin: 34px 0 13px; font-size: 24px; line-height: 1.38; }
+.weekly-next-panel > p { margin: 0; color: rgba(255,255,255,.62); font-size: 10px; line-height: 1.75; }
+.weekly-next-panel dl { border-top: 1px solid rgba(255,255,255,.12); border-bottom: 1px solid rgba(255,255,255,.12); margin: 28px 0 0; padding: 8px 0; }
+.weekly-next-panel dl > div { display: flex; justify-content: space-between; gap: 18px; padding: 8px 0; }
+.weekly-next-panel dt { color: rgba(255,255,255,.4); font-size: 8px; }
+.weekly-next-panel dd { margin: 0; color: rgba(255,255,255,.78); font-size: 8px; }
+.weekly-next-panel button { min-height: 38px; margin-top: 25px; border: 1px solid rgba(217,196,131,.34); border-radius: 999px; background: rgba(217,196,131,.08); color: #e1cd8f; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; font-size: 9px; font-weight: 780; }
+.weekly-next-panel button svg { width: 13px; height: 13px; }
+.weekly-memo button,.weekly-memo button svg { transition: none; transform: none; }
+.weekly-memo > footer { border-top: 1px solid rgba(69,82,94,.1); }
+@media (max-width:960px) {
+    .weekly-memo-lead { grid-template-columns: 1fr; }
+    .weekly-memo-stats { min-width: 0; }
+    .weekly-memo-body { grid-template-columns: 1fr; }
+}
+@media (max-width:760px) {
+    .weekly-memo > header { padding: 0 20px; }
+    .weekly-memo-lead { min-height: 0; padding: 30px 22px; }
+    .weekly-memo-lead h2 { font-size: 25px; }
+    .weekly-memo-stats { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .weekly-memo-stats > div { padding-left: 10px; }
+    .weekly-story { padding: 27px 22px; }
+    .weekly-story-heading { grid-template-columns: 1fr; }
+    .weekly-story-track { grid-template-columns: 1fr; gap: 14px; }
+    .weekly-story-track > i { width: 1px; height: 14px; margin-left: 4px; }
+    .weekly-story-track > i::after { right: auto; left: -2px; top: auto; bottom: 0; transform: rotate(135deg); }
+    .weekly-story-track > div { min-height: 82px; }
+    .weekly-analysis-note { min-height: 0; grid-template-columns: 1fr; padding: 32px 22px; }
+    .weekly-evidence-line { grid-template-columns: auto 1fr; }
+    .weekly-evidence-line button { grid-column: 1 / -1; }
+    .weekly-action-note { grid-template-columns: 1fr; }
+    .weekly-next-panel { min-height: 0; padding: 34px 22px; }
+}
+@media (prefers-color-scheme:dark) {
+    .weekly-memo { border-color: rgba(255,255,255,.09); background: rgba(38,43,49,.68); box-shadow: inset 0 1px rgba(255,255,255,.06); }
+    .weekly-memo-lead h2,.weekly-memo-stats dd,.weekly-story-heading h3,.weekly-story-track strong,.weekly-analysis-copy h3 { color: #f0f2f3; }
+    .weekly-story { border-color: rgba(255,255,255,.08); background: rgba(255,255,255,.035); }
+    .weekly-story-track > div { border-top-color: #728795; }
+    .weekly-evidence-line { border-color: rgba(255,255,255,.08); }
+}
+
 /* Motion layer: staged view entry and stable numeric updates. */
 .app-view { animation: none; }
 .app-view.motion-enter > * {

@@ -1020,17 +1020,17 @@ function renderWeekly() {
     const topics = [...new Set([lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, 4);
     document.querySelector("#weeklyTheme").textContent = lead.topic === "启动成本" ? "从“把事情想清楚”转向“先做出一个可以验证的版本”。" : `本周最稳定的思考主线是“${lead.topic}”，它正在影响你的行动选择。`;
     document.querySelector("#weeklyRepeatTitle").textContent = lead.topic;
+    document.querySelector("#weeklyTrackTopic").textContent = lead.topic;
     document.querySelector("#weeklyRepeatCopy").textContent = lead.detail;
-    setAnimatedNumber(document.querySelector("#weeklyHeaderInputs"), week.length);
-    setAnimatedNumber(document.querySelector("#weeklyHeaderDone"), done.length);
-    setAnimatedNumber(document.querySelector("#weeklyHeaderRate"), rate, "%");
-    setAnimatedNumber(document.querySelector("#weeklyInputCount"), week.length);
-    setAnimatedNumber(document.querySelector("#weeklyInsightScore"), lead.confidence);
-    setAnimatedNumber(document.querySelector("#weeklyDoneCount"), done.length);
+    document.querySelector("#weeklyHeaderInputs").textContent = week.length;
+    document.querySelector("#weeklyHeaderDone").textContent = done.length;
+    document.querySelector("#weeklyHeaderRate").textContent = `${rate}%`;
+    document.querySelector("#weeklyInputCount").textContent = week.length;
+    document.querySelector("#weeklyInsightScore").textContent = lead.confidence;
+    document.querySelector("#weeklyDoneCount").textContent = done.length;
     document.querySelector("#weeklyEvidenceCount").textContent = `${lead.evidence} 条依据`;
     document.querySelector("#weeklyEvidenceButton").dataset.openEvidence = lead.topic;
     document.querySelector("#weeklyTopicList").innerHTML = topics.length ? topics.map((topic) => `<span>#${escapeHtml(topic)}</span>`).join("") : "<span>等待更多输入</span>";
-    document.querySelector("#weeklyProgressBar").style.width = `${rate}%`;
     document.querySelector("#weeklyProgressLabel").textContent = `${rate}% 完成`;
     document.querySelector("#weeklyActionCopy").textContent = done.length ? `本周已有 ${done.length} 个结果进入反馈，后续洞察会优先参考这些真实行动。` : "本周还缺少完成后的真实反馈，先完成一个最小行动再回来看结论。";
     document.querySelector("#weeklyNextTitle").textContent = lead.topic === "启动成本" ? "把下一步缩小到 15 分钟" : `为“${lead.topic}”做一次最小验证`;
@@ -1637,14 +1637,6 @@ focusBoard.addEventListener("pointermove", (event) => {
 focusBoard.addEventListener("pointerleave", () => {
     focusBoard.style.setProperty("--board-x", "0px");
     focusBoard.style.setProperty("--board-y", "0px");
-});
-
-document.querySelector(".weekly-quadrants").addEventListener("pointermove", (event) => {
-    const quadrant = event.target.closest("[data-weekly-spotlight]");
-    if (!quadrant || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const bounds = quadrant.getBoundingClientRect();
-    quadrant.style.setProperty("--spot-x", `${event.clientX - bounds.left}px`);
-    quadrant.style.setProperty("--spot-y", `${event.clientY - bounds.top}px`);
 });
 
 const topbar = document.querySelector(".topbar");
