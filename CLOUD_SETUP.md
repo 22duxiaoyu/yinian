@@ -4,7 +4,7 @@
 
 ## 你需要准备
 
-1. 一个 Supabase 项目。
+1. 一个 Supabase 项目。当前项目已经创建并连接，项目 Ref 为 `uukyfcablxsuhrxgmfov`。
 2. Supabase 项目的 `Project URL` 和 `Publishable key`。这两项可以放进网页，不是私密密钥。
 3. 一个 OpenAI API Key。它只能设置为 Supabase Secret，绝不能写进仓库或 `cloud-config.js`。
 
