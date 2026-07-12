@@ -19,6 +19,12 @@ const state = {
     user: loadActiveUser(),
     notes: [],
     documents: [],
+    insights: [],
+    weeklyReport: null,
+    cloudEnabled: false,
+    cloudHydrating: false,
+    cloudUnsubscribe: null,
+    localMigrationCandidate: null,
     view: "overview",
     filter: "all",
     query: "",
@@ -36,6 +42,11 @@ const el = {
     authName: document.querySelector("#authName"),
     authPasscode: document.querySelector("#authPasscode"),
     authMessage: document.querySelector("#authMessage"),
+    authNameLabel: document.querySelector("#authNameLabel"),
+    authPasscodeLabel: document.querySelector("#authPasscodeLabel"),
+    authDividerText: document.querySelector("#authDividerText"),
+    authSubmitButton: document.querySelector("#authSubmitButton"),
+    registerButton: document.querySelector("#registerButton"),
     demoButton: document.querySelector("#demoButton"),
     spaceName: document.querySelector("#spaceName"),
     activeUserName: document.querySelector("#activeUserName"),
@@ -43,6 +54,8 @@ const el = {
     profileButton: document.querySelector("#profileButton"),
     profileMenu: document.querySelector("#profileMenu"),
     logoutButton: document.querySelector("#logoutButton"),
+    engineStatusTitle: document.querySelector("#engineStatusTitle"),
+    engineStatusCopy: document.querySelector("#engineStatusCopy"),
     exportButton: document.querySelector("#exportNotes"),
     importInput: document.querySelector("#importNotes"),
     breadcrumbCurrent: document.querySelector("#breadcrumbCurrent"),
@@ -320,6 +333,7 @@ function loadDocumentsForUser(userId) {
 function saveDocuments() {
     if (!state.user) return;
     localStorage.setItem(documentsKey(state.user.id), JSON.stringify(state.documents));
+    queueCloudSync("documents");
 }
 
 function normalizeNote(note) {
@@ -378,9 +392,91 @@ function loadNotesForUser(userId) {
 function saveNotes() {
     if (!state.user) return;
     localStorage.setItem(notesKey(state.user.id), JSON.stringify(state.notes));
+    queueCloudSync("notes");
+}
+
+const cloudSyncTimers = { notes: null, documents: null, refresh: null };
+
+function queueCloudSync(kind) {
+    if (!state.cloudEnabled || !state.user?.cloud || state.cloudHydrating) return;
+    window.clearTimeout(cloudSyncTimers[kind]);
+    cloudSyncTimers[kind] = window.setTimeout(async () => {
+        try {
+            if (kind === "notes") await window.ActionCloud.syncNotes(state.user.id, state.notes);
+            if (kind === "documents") await window.ActionCloud.syncDocuments(state.user.id, state.documents);
+            el.engineStatusCopy.textContent = `刚刚同步 · ${state.user.email}`;
+        } catch (error) {
+            console.error("Action cloud sync failed", error);
+            el.engineStatusCopy.textContent = "同步暂时中断 · 本机副本仍已保存";
+            showToast("云端同步暂时失败，本机副本仍然安全");
+        }
+    }, 420);
+}
+
+async function refreshCloudWorkspace({ render = true } = {}) {
+    if (!state.cloudEnabled || !state.user?.cloud) return;
+    const workspace = await window.ActionCloud.loadWorkspace({
+        id: state.user.id,
+        email: state.user.email,
+        user_metadata: { display_name: state.user.name },
+    });
+    state.cloudHydrating = true;
+    state.user = workspace.user;
+    state.notes = workspace.notes.map(normalizeNote);
+    state.documents = workspace.documents.map(normalizeDocumentImport);
+    state.insights = workspace.insights;
+    state.weeklyReport = workspace.weeklyReport;
+    localStorage.setItem(ACTIVE_USER_KEY, state.user.id);
+    localStorage.setItem(notesKey(state.user.id), JSON.stringify(state.notes));
+    localStorage.setItem(documentsKey(state.user.id), JSON.stringify(state.documents));
+    state.cloudHydrating = false;
+    if (render) {
+        renderAuthState();
+        renderAll();
+    }
+}
+
+function subscribeToCloudWorkspace() {
+    state.cloudUnsubscribe?.();
+    if (!state.user?.cloud) return;
+    state.cloudUnsubscribe = window.ActionCloud.subscribe(state.user.id, () => {
+        window.clearTimeout(cloudSyncTimers.refresh);
+        cloudSyncTimers.refresh = window.setTimeout(() => refreshCloudWorkspace().catch(console.error), 500);
+    });
+}
+
+async function activateCloudUser(authUser) {
+    const workspace = await window.ActionCloud.loadWorkspace(authUser);
+    const migration = state.localMigrationCandidate;
+    const shouldMigrate = workspace.notes.length === 0 && workspace.documents.length === 0 && migration && migration.user?.id !== DEMO_USER.id;
+    if (shouldMigrate) {
+        workspace.notes = migration.notes.map(normalizeNote);
+        workspace.documents = migration.documents.map(normalizeDocumentImport);
+        await Promise.all([
+            window.ActionCloud.syncNotes(authUser.id, workspace.notes),
+            window.ActionCloud.syncDocuments(authUser.id, workspace.documents),
+        ]);
+        showToast(`已把本机的 ${workspace.notes.length + workspace.documents.length} 条内容迁移到云端`);
+    }
+    state.cloudHydrating = true;
+    state.user = workspace.user;
+    state.notes = workspace.notes.map(normalizeNote);
+    state.documents = workspace.documents.map(normalizeDocumentImport);
+    state.insights = workspace.insights;
+    state.weeklyReport = workspace.weeklyReport;
+    state.view = "overview";
+    localStorage.setItem(ACTIVE_USER_KEY, state.user.id);
+    localStorage.setItem(notesKey(state.user.id), JSON.stringify(state.notes));
+    localStorage.setItem(documentsKey(state.user.id), JSON.stringify(state.documents));
+    state.cloudHydrating = false;
+    subscribeToCloudWorkspace();
+    renderAuthState();
+    renderAll();
 }
 
 function setActiveUser(user) {
+    state.cloudUnsubscribe?.();
+    state.cloudUnsubscribe = null;
     state.user = user;
     if (user) {
         localStorage.setItem(ACTIVE_USER_KEY, user.id);
@@ -392,6 +488,8 @@ function setActiveUser(user) {
         localStorage.removeItem(ACTIVE_USER_KEY);
         state.notes = [];
         state.documents = [];
+        state.insights = [];
+        state.weeklyReport = null;
     }
     state.view = "overview";
     renderAuthState();
@@ -476,6 +574,7 @@ function getEvidence(topic) {
 }
 
 function buildInsights() {
+    if (state.user?.cloud && state.insights.length) return state.insights;
     const tags = getTagCounts();
     const topTopic = tags[0]?.[0] || "行动反馈";
     const evidence = getEvidence(topTopic);
@@ -738,7 +837,9 @@ async function handleDocumentImport() {
     try {
         const parsed = [];
         for (const file of supported.slice(0, 6)) {
-            parsed.push(await parseImportedDocument(file));
+            const document = await parseImportedDocument(file);
+            if (state.user?.cloud) await window.ActionCloud.uploadDocument(state.user.id, file, document);
+            parsed.push(document);
         }
         const existingNames = new Set(parsed.map((item) => item.name));
         state.documents = [...parsed, ...state.documents.filter((item) => !existingNames.has(item.name))].slice(0, 10);
@@ -799,6 +900,21 @@ function renderAuthState() {
     if (locked) window.setTimeout(() => el.demoButton.focus(), 100);
 }
 
+function configureCloudUi() {
+    if (!state.cloudEnabled) return;
+    el.authDividerText.textContent = "登录后在所有设备同步";
+    el.authNameLabel.textContent = "邮箱";
+    el.authPasscodeLabel.textContent = "密码";
+    el.authName.type = "email";
+    el.authName.maxLength = 254;
+    el.authName.placeholder = "name@example.com";
+    el.authPasscode.minLength = 6;
+    el.authPasscode.placeholder = "至少 6 位";
+    el.authSubmitButton.textContent = "登录云端空间";
+    el.registerButton.hidden = false;
+    setAuthMessage("数据会加密传输，并按账号隔离保存。");
+}
+
 function renderNavigation() {
     document.querySelectorAll("[data-view-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.viewPanel === state.view));
     document.querySelectorAll(".nav-item[data-view]").forEach((button) => button.classList.toggle("active", button.dataset.view === state.view));
@@ -816,6 +932,9 @@ function renderUser() {
     el.spaceName.textContent = state.user?.id === DEMO_USER.id ? "AI 产品经理作品集" : `${name}的思考空间`;
     el.activeUserName.textContent = name;
     el.userInitial.textContent = name.slice(0, 1).toUpperCase();
+    const cloud = Boolean(state.user?.cloud);
+    el.engineStatusTitle.textContent = cloud ? "云端同步已连接" : "本地洞察引擎";
+    el.engineStatusCopy.textContent = cloud ? `跨设备同步 · ${state.user.email}` : "前端验证版 · 数据仅保存在本机";
     document.querySelector("#greetingTitle").textContent = `${getGreeting()}，${name}。今天先推进一件事。`;
 }
 
@@ -1015,28 +1134,31 @@ function renderBoardCards(notes, done) {
 function renderWeekly() {
     const week = activeSources().filter((source) => isWithinDays(source.createdAt, 7));
     const lead = buildInsights()[0];
+    const cloudReport = state.user?.cloud && state.weeklyReport?.report ? state.weeklyReport.report : null;
     const tasks = activeNotes().filter((note) => note.type === "task" && isWithinDays(note.updatedAt, 7));
     const done = tasks.filter((note) => note.done);
     const rate = tasks.length ? Math.round((done.length / tasks.length) * 100) : 0;
-    const layout = week.length <= 3 ? "sparse" : week.length >= 9 ? "dense" : "balanced";
+    const inferredLayout = week.length <= 3 ? "sparse" : week.length >= 9 ? "dense" : "balanced";
+    const layout = ["sparse", "balanced", "dense"].includes(cloudReport?.layout) ? cloudReport.layout : inferredLayout;
     const topicLimit = layout === "dense" ? 6 : layout === "sparse" ? 2 : 4;
-    const topics = [...new Set([lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, topicLimit);
+    const reportTopics = Array.isArray(cloudReport?.topics) ? cloudReport.topics.map(String) : [];
+    const topics = [...new Set([...reportTopics, lead.topic, ...week.flatMap((source) => source.tags)])].filter(Boolean).slice(0, topicLimit);
     const weeklyEvidence = getEvidence(lead.topic).filter((source) => isWithinDays(source.createdAt, 7));
     const evidencePool = weeklyEvidence.length ? weeklyEvidence : getEvidence(lead.topic);
     const evidenceLimit = layout === "dense" ? 4 : layout === "sparse" ? 1 : 2;
-    const report = document.querySelector(".weekly-map-report");
-    report.dataset.layout = layout;
-    report.dataset.hasActions = String(tasks.length > 0);
+    const reportElement = document.querySelector(".weekly-map-report");
+    reportElement.dataset.layout = layout;
+    reportElement.dataset.hasActions = String(tasks.length > 0);
     document.querySelector("#weeklyLayoutLabel").textContent = layout === "sparse" ? "AI 精简布局" : layout === "dense" ? "AI 深度布局" : "AI 标准布局";
-    document.querySelector("#weeklyLayoutSummary").textContent = layout === "sparse"
+    document.querySelector("#weeklyLayoutSummary").textContent = cloudReport?.explanation || (layout === "sparse"
         ? "本周信息量较少，先保留核心判断与最关键的依据，避免过度总结。"
         : layout === "dense"
           ? "本周输入较多，AI 已展开更多主题和原始证据，帮助你检查结论是否可靠。"
-          : "中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。";
-    document.querySelector("#weeklyTheme").textContent = lead.topic === "启动成本" ? "从“把事情想清楚”转向“先做出一个可以验证的版本”。" : `本周最稳定的思考主线是“${lead.topic}”，它正在影响你的行动选择。`;
+          : "中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。");
+    document.querySelector("#weeklyTheme").textContent = cloudReport?.theme || state.weeklyReport?.theme || (lead.topic === "启动成本" ? "从“把事情想清楚”转向“先做出一个可以验证的版本”。" : `本周最稳定的思考主线是“${lead.topic}”，它正在影响你的行动选择。`);
     document.querySelector("#weeklyRepeatTitle").textContent = lead.topic;
     document.querySelector("#weeklyMapInsight").textContent = lead.topic;
-    document.querySelector("#weeklyRepeatCopy").textContent = lead.detail;
+    document.querySelector("#weeklyRepeatCopy").textContent = cloudReport?.summary || lead.detail;
     document.querySelector("#weeklyHeaderInputs").textContent = week.length;
     document.querySelector("#weeklyHeaderDone").textContent = done.length;
     document.querySelector("#weeklyHeaderRate").textContent = `${rate}%`;
@@ -1047,9 +1169,10 @@ function renderWeekly() {
     document.querySelector("#weeklyEvidenceButton").dataset.openEvidence = lead.topic;
     document.querySelector("#weeklyTopicList").innerHTML = topics.length ? topics.map((topic) => `<span>#${escapeHtml(topic)}</span>`).join("") : "<span>等待更多输入</span>";
     document.querySelector("#weeklyProgressLabel").textContent = tasks.length ? `${rate}% 完成` : "等待行动反馈";
-    document.querySelector("#weeklyActionCopy").textContent = done.length ? `本周已有 ${done.length} 个结果进入反馈，后续洞察会优先参考这些真实行动。` : "本周还缺少完成后的真实反馈，先完成一个最小行动再回来看结论。";
-    document.querySelector("#weeklyNextTitle").textContent = lead.topic === "启动成本" ? "把下一步缩小到 15 分钟" : `为“${lead.topic}”做一次最小验证`;
-    document.querySelector("#weeklyNextCopy").textContent = lead.topic === "启动成本" ? "连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。" : `用一个低成本行动验证“${lead.topic}”是否真的影响本周推进。`;
+    document.querySelector("#weeklyActionCopy").textContent = cloudReport?.action_feedback || (done.length ? `本周已有 ${done.length} 个结果进入反馈，后续洞察会优先参考这些真实行动。` : "本周还缺少完成后的真实反馈，先完成一个最小行动再回来看结论。");
+    const nextExperiment = cloudReport?.next_experiment && typeof cloudReport.next_experiment === "object" ? cloudReport.next_experiment : null;
+    document.querySelector("#weeklyNextTitle").textContent = nextExperiment?.title || (lead.topic === "启动成本" ? "把下一步缩小到 15 分钟" : `为“${lead.topic}”做一次最小验证`);
+    document.querySelector("#weeklyNextCopy").textContent = nextExperiment?.detail || (lead.topic === "启动成本" ? "连续测试 5 天，记录实际开始时间和完成感受，再判断它是否有效。" : `用一个低成本行动验证“${lead.topic}”是否真的影响本周推进。`);
     document.querySelector("#weeklyEvidenceSamples").innerHTML = evidencePool.slice(0, evidenceLimit).map((source) => `
         <article ${source.sourceKind === "document" ? `data-document-id="${escapeHtml(source.sourceId)}"` : `data-note-id="${escapeHtml(source.sourceId)}"`}>
             <span>${source.sourceKind === "document" ? escapeHtml(source.documentKind) : typeLabels[source.type]}</span>
@@ -1159,7 +1282,7 @@ function closeCapture() {
 
 function updateWordCount() {
     const count = el.noteContent.value.replace(/\s/g, "").length;
-    el.captureWordCount.textContent = `${count} 字 · 仅保存在本机`;
+    el.captureWordCount.textContent = `${count} 字 · ${state.user?.cloud ? "自动同步到云端" : "仅保存在本机"}`;
 }
 
 function toggleTask(id) {
@@ -1311,6 +1434,16 @@ async function runAnalysis() {
     if (state.analyzing) return;
     state.analyzing = true;
     const sourceCount = activeSources().length;
+    const cloudAnalysis = state.user?.cloud
+        ? window.ActionCloud.invoke("analyze-insights")
+            .then(async (result) => {
+                state.insights = (result.insights || []).map(window.ActionCloud.mapInsight);
+                const weekly = await window.ActionCloud.invoke("generate-weekly");
+                state.weeklyReport = weekly.weekly_report || null;
+                return { ok: true };
+            })
+            .catch((error) => ({ ok: false, error }))
+        : Promise.resolve({ ok: true });
     const buttons = document.querySelectorAll("#runAnalysis, [data-run-analysis]");
     buttons.forEach((button) => {
         button.disabled = true;
@@ -1341,14 +1474,15 @@ async function runAnalysis() {
         [...el.analysisStageDots.children].forEach((dot, dotIndex) => dot.classList.toggle("active", dotIndex <= index));
         await delay(760);
     }
+    const cloudResult = await cloudAnalysis;
     el.reasoningSteps.classList.remove("analyzing");
     steps.forEach((item) => item.classList.remove("active"));
-    el.aiStatusText.textContent = "已更新当前空间";
+    el.aiStatusText.textContent = cloudResult.ok ? "已更新当前空间" : "云端分析暂时不可用";
     el.analysisTime.textContent = "刚刚";
     renderAll();
     el.analysisOverlay.classList.add("complete");
-    el.analysisOverlayTitle.textContent = "洞察整理完成";
-    el.analysisOverlayDetail.textContent = `已更新 ${buildInsights().length} 条洞察与对应证据`;
+    el.analysisOverlayTitle.textContent = cloudResult.ok ? "洞察整理完成" : "已保留原有洞察";
+    el.analysisOverlayDetail.textContent = cloudResult.ok ? `已更新 ${buildInsights().length} 条洞察与对应证据` : "云端 AI 暂时未响应，你的数据没有丢失";
     el.analysisProgressBar.style.width = "100%";
     await delay(680);
     el.analysisOverlay.classList.remove("show", "complete");
@@ -1360,7 +1494,12 @@ async function runAnalysis() {
         if (label) label.textContent = button.id === "runAnalysis" ? "生成今日洞察" : "用 AI 做洞察";
     });
     state.analyzing = false;
-    showToast("分析完成：已更新 3 条洞察和证据链");
+    if (cloudResult.ok) {
+        showToast(`分析完成：已更新 ${buildInsights().length} 条洞察和动态周报`);
+    } else {
+        console.error("Action cloud analysis failed", cloudResult.error);
+        showToast("云端 AI 暂时不可用，已继续显示本地洞察");
+    }
 }
 
 async function askAi() {
@@ -1371,16 +1510,29 @@ async function askAi() {
     }
     el.askAi.disabled = true;
     el.aiStatusText.textContent = "正在回看原始记录";
-    await delay(700);
-    const response = question.includes("为什么")
-        ? "因为“计划完整”和“推迟开始”在 4 条记录中共同出现，而两次完成都发生在任务被缩小之后。"
-        : question.includes("下一步")
-          ? "先写出一个 15 分钟内可以完成的版本，并记录实际开始时间。连续观察 3 天后再判断。"
-          : "现有证据更支持“先缩小动作再观察”，但样本仍少。建议把它当作待验证假设，而不是确定结论。";
-    el.railSuggestion.textContent = response;
-    el.aiQuestion.value = "";
-    el.aiStatusText.textContent = "回答已引用当前空间";
-    el.askAi.disabled = false;
+    try {
+        let response;
+        if (state.user?.cloud) {
+            const result = await window.ActionCloud.invoke("ask-action", { question });
+            response = `${result.answer}\n\n依据：${result.basis}\n可选下一步：${result.next_step}`;
+        } else {
+            await delay(700);
+            response = question.includes("为什么")
+                ? "因为“计划完整”和“推迟开始”在 4 条记录中共同出现，而两次完成都发生在任务被缩小之后。"
+                : question.includes("下一步")
+                  ? "先写出一个 15 分钟内可以完成的版本，并记录实际开始时间。连续观察 3 天后再判断。"
+                  : "现有证据更支持“先缩小动作再观察”，但样本仍少。建议把它当作待验证假设，而不是确定结论。";
+        }
+        el.railSuggestion.textContent = response;
+        el.aiQuestion.value = "";
+        el.aiStatusText.textContent = "回答已引用当前空间";
+    } catch (error) {
+        console.error(error);
+        el.aiStatusText.textContent = "回答暂时失败";
+        showToast("云端 AI 暂时没有响应，请稍后再试");
+    } finally {
+        el.askAi.disabled = false;
+    }
 }
 
 function createSuggestedAction() {
@@ -1401,9 +1553,18 @@ function createSuggestedAction() {
     showToast("AI 建议已转成行动，你仍可随时修改");
 }
 
-function deleteNote(id) {
+async function deleteNote(id) {
     const note = state.notes.find((item) => item.id === id);
     if (!note || !window.confirm(`确认删除“${note.title}”吗？`)) return;
+    if (state.user?.cloud) {
+        try {
+            await window.ActionCloud.remove("notes", id);
+        } catch (error) {
+            console.error(error);
+            showToast("云端删除失败，请检查网络后重试");
+            return;
+        }
+    }
     state.notes = state.notes.filter((item) => item.id !== id);
     saveNotes();
     closeDetailDrawer();
@@ -1422,6 +1583,26 @@ el.authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const name = el.authName.value.trim().replace(/\s+/g, " ");
     const passcode = el.authPasscode.value.trim();
+    if (state.cloudEnabled) {
+        if (!name.includes("@") || passcode.length < 6) {
+            setAuthMessage("请输入正确邮箱，密码至少 6 位。", true);
+            return;
+        }
+        el.authSubmitButton.disabled = true;
+        el.authSubmitButton.textContent = "正在登录";
+        try {
+            const { user } = await window.ActionCloud.signIn(name, passcode);
+            await activateCloudUser(user);
+            el.authForm.reset();
+        } catch (error) {
+            console.error(error);
+            setAuthMessage(error.message?.includes("Invalid login") ? "邮箱或密码不正确。" : "登录失败，请检查网络后重试。", true);
+        } finally {
+            el.authSubmitButton.disabled = false;
+            el.authSubmitButton.textContent = "登录云端空间";
+        }
+        return;
+    }
     if (name.length < 2 || passcode.length < 4) {
         setAuthMessage("用户名至少 2 个字符，访问码至少 4 位。", true);
         return;
@@ -1441,6 +1622,32 @@ el.authForm.addEventListener("submit", async (event) => {
     el.authForm.reset();
     setAuthMessage("首次登录会在本机创建独立空间，数据不会上传。");
     setActiveUser(user);
+});
+
+el.registerButton.addEventListener("click", async () => {
+    const email = el.authName.value.trim();
+    const password = el.authPasscode.value.trim();
+    if (!email.includes("@") || password.length < 6) {
+        setAuthMessage("先填写邮箱和至少 6 位密码，再创建账号。", true);
+        return;
+    }
+    el.registerButton.disabled = true;
+    el.registerButton.textContent = "正在创建";
+    try {
+        const data = await window.ActionCloud.signUp(email, password, email.split("@")[0]);
+        if (data.session && data.user) {
+            await activateCloudUser(data.user);
+            el.authForm.reset();
+        } else {
+            setAuthMessage("账号已创建，请前往邮箱完成验证后再登录。", false);
+        }
+    } catch (error) {
+        console.error(error);
+        setAuthMessage(error.message?.includes("already registered") ? "该邮箱已经注册，请直接登录。" : "账号创建失败，请稍后重试。", true);
+    } finally {
+        el.registerButton.disabled = false;
+        el.registerButton.textContent = "创建云端账号";
+    }
 });
 
 document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
@@ -1635,8 +1842,18 @@ el.profileButton.addEventListener("click", (event) => {
     el.profileMenu.hidden = !el.profileMenu.hidden;
 });
 document.addEventListener("click", (event) => { if (!event.target.closest(".profile-row")) el.profileMenu.hidden = true; });
-document.querySelector("#workspaceSwitcher").addEventListener("click", () => showToast("当前为个人本地空间，多工作区将在云端版本开放"));
-el.logoutButton.addEventListener("click", () => { el.profileMenu.hidden = true; setActiveUser(null); });
+document.querySelector("#workspaceSwitcher").addEventListener("click", () => showToast(state.user?.cloud ? "当前为你的云端个人空间" : "当前为个人本地空间"));
+el.logoutButton.addEventListener("click", async () => {
+    el.profileMenu.hidden = true;
+    if (state.user?.cloud) {
+        try {
+            await window.ActionCloud.signOut();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    setActiveUser(null);
+});
 
 el.exportButton.addEventListener("click", () => {
     const payload = JSON.stringify({ product: "Action", version: 5, exportedAt: new Date().toISOString(), notes: state.notes, documents: state.documents }, null, 2);
@@ -1703,11 +1920,45 @@ document.querySelector("#copyWeekly").addEventListener("click", async () => {
     }
 });
 
-if (state.user) {
-    state.notes = loadNotesForUser(state.user.id);
-    state.documents = loadDocumentsForUser(state.user.id);
-    saveNotes();
-    saveDocuments();
+async function bootstrapApp() {
+    const localUser = state.user;
+    if (localUser) {
+        state.localMigrationCandidate = {
+            user: localUser,
+            notes: loadNotesForUser(localUser.id),
+            documents: loadDocumentsForUser(localUser.id),
+        };
+    }
+    try {
+        const cloud = await window.ActionCloud.init();
+        state.cloudEnabled = cloud.configured;
+        configureCloudUi();
+        if (cloud.configured && cloud.session?.user) {
+            await activateCloudUser(cloud.session.user);
+            return;
+        }
+        if (cloud.configured) {
+            state.user = null;
+            state.notes = [];
+            state.documents = [];
+            renderAuthState();
+            renderAll();
+            return;
+        }
+    } catch (error) {
+        console.error("Action cloud initialization failed", error);
+        state.cloudEnabled = false;
+        setAuthMessage("云端暂时无法连接，已切回本地模式。", true);
+    }
+    state.user = localUser;
+    if (state.user) {
+        state.notes = state.localMigrationCandidate?.notes || loadNotesForUser(state.user.id);
+        state.documents = state.localMigrationCandidate?.documents || loadDocumentsForUser(state.user.id);
+        saveNotes();
+        saveDocuments();
+    }
+    renderAuthState();
+    renderAll();
 }
-renderAuthState();
-renderAll();
+
+bootstrapApp();

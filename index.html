@@ -94,17 +94,18 @@
                         <span>体验完整示例</span>
                         <svg><use href="#i-arrow" /></svg>
                     </button>
-                    <div class="auth-divider"><span>或进入你的本地空间</span></div>
+                    <div class="auth-divider"><span id="authDividerText">或进入你的本地空间</span></div>
                     <form class="auth-form" id="authForm">
                         <label>
-                            <span>用户名</span>
+                            <span id="authNameLabel">用户名</span>
                             <input id="authName" autocomplete="username" maxlength="32" placeholder="输入用户名" required />
                         </label>
                         <label>
-                            <span>访问码</span>
+                            <span id="authPasscodeLabel">访问码</span>
                             <input id="authPasscode" autocomplete="current-password" minlength="4" placeholder="至少 4 位" required type="password" />
                         </label>
-                        <button class="secondary-auth-button" type="submit">进入空间</button>
+                        <button class="secondary-auth-button" id="authSubmitButton" type="submit">进入空间</button>
+                        <button class="secondary-auth-button cloud-register-button" id="registerButton" type="button" hidden>创建云端账号</button>
                     </form>
                     <p class="auth-message" id="authMessage">首次登录会在本机创建独立空间，数据不会上传。</p>
                 </div>
@@ -142,8 +143,8 @@
 
                 <div class="sidebar-spacer"></div>
                 <section class="engine-status">
-                    <div><span class="status-dot"></span><strong>本地洞察引擎</strong></div>
-                    <p>前端验证版 · 数据仅保存在本机</p>
+                    <div><span class="status-dot"></span><strong id="engineStatusTitle">本地洞察引擎</strong></div>
+                    <p id="engineStatusCopy">前端验证版 · 数据仅保存在本机</p>
                 </section>
                 <div class="profile-row">
                     <span class="avatar" id="userInitial">访</span>
@@ -404,6 +405,8 @@
             </div>
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
-        <script src="./app.js?v=21"></script>
+        <script src="./cloud-config.js?v=1"></script>
+        <script src="./cloud.js?v=1"></script>
+        <script src="./app.js?v=22"></script>
     </body>
 </html>

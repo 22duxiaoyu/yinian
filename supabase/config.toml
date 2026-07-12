@@ -1,0 +1,36 @@
+project_id = "action-cloud"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+site_url = "http://localhost:6002"
+additional_redirect_urls = ["https://22duxiaoyu.github.io/yinian/"]
+jwt_expiry = 3600
+enable_signup = true
+
+[storage]
+enabled = true
+file_size_limit = "20MiB"
+
+[functions.analyze-insights]
+verify_jwt = true
+
+[functions.generate-weekly]
+verify_jwt = true
+
+[functions.ask-action]
+verify_jwt = true
