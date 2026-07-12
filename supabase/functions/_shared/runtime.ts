@@ -42,53 +42,57 @@ export async function authenticatedClient(request: Request): Promise<{
 }
 
 function extractResponseText(payload: Record<string, unknown>) {
-  if (typeof payload.output_text === "string") return payload.output_text;
-  const output = Array.isArray(payload.output) ? payload.output : [];
-  for (const item of output) {
-    if (!item || typeof item !== "object") continue;
-    const content = Array.isArray((item as { content?: unknown[] }).content)
-      ? (item as { content: unknown[] }).content
-      : [];
-    for (const part of content) {
-      if (!part || typeof part !== "object") continue;
-      const text = (part as { text?: unknown }).text;
-      if (typeof text === "string") return text;
-    }
-  }
-  throw new Error("OPENAI_EMPTY_RESPONSE");
+  const choices = Array.isArray(payload.choices) ? payload.choices : [];
+  const first = choices[0] as { message?: { content?: unknown } } | undefined;
+  const content = first?.message?.content;
+  if (typeof content === "string" && content.trim()) return content;
+  throw new Error("DEEPSEEK_EMPTY_RESPONSE");
 }
 
 export async function generateJson(instructions: string, input: unknown) {
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  const model = Deno.env.get("OPENAI_MODEL");
-  if (!apiKey || !model) throw new Error("OPENAI_NOT_CONFIGURED");
+  const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  const model = Deno.env.get("DEEPSEEK_MODEL");
+  if (!apiKey || !model) throw new Error("DEEPSEEK_NOT_CONFIGURED");
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      instructions: `${instructions}\n只返回有效 JSON，不要使用 Markdown 代码块。`,
-      input: JSON.stringify(input),
-      max_output_tokens: 5000,
-    }),
-  });
-  const payload = await response.json();
-  if (!response.ok) {
-    const message = payload?.error?.message || `OpenAI request failed (${response.status})`;
-    throw new Error(message);
+  let lastError: unknown = new Error("DEEPSEEK_EMPTY_RESPONSE");
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: `${instructions}\n请输出一个有效且非空的 JSON 对象，不要使用 Markdown 代码块。` },
+            { role: "user", content: JSON.stringify(input) },
+          ],
+          response_format: { type: "json_object" },
+          thinking: { type: "disabled" },
+          max_tokens: 5000,
+          stream: false,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        const message = payload?.error?.message || `DeepSeek request failed (${response.status})`;
+        throw new Error(message);
+      }
+      const raw = extractResponseText(payload).trim().replace(/^```json\s*/i, "").replace(/\s*```$/, "");
+      return JSON.parse(raw);
+    } catch (error) {
+      lastError = error;
+    }
   }
-  const raw = extractResponseText(payload).trim().replace(/^```json\s*/i, "").replace(/\s*```$/, "");
-  return JSON.parse(raw);
+  throw lastError;
 }
 
 export function functionError(request: Request, error: unknown) {
   const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
   if (message === "UNAUTHORIZED") return json(request, { error: "请先登录云端账户" }, 401);
-  if (message === "OPENAI_NOT_CONFIGURED") return json(request, { error: "AI 服务尚未配置" }, 503);
+  if (message === "DEEPSEEK_NOT_CONFIGURED") return json(request, { error: "AI 服务尚未配置" }, 503);
   console.error(error);
   return json(request, { error: "服务暂时不可用，请稍后重试" }, 500);
 }
