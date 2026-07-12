@@ -96,10 +96,11 @@
     }
 
     async function signUp(email, password, displayName) {
+        const redirectTo = `${global.location.origin}${global.location.pathname}`;
         const { data, error } = await requireClient().auth.signUp({
             email,
             password,
-            options: { data: { display_name: displayName || email.split("@")[0] } },
+            options: { data: { display_name: displayName || email.split("@")[0] }, emailRedirectTo: redirectTo },
         });
         if (error) throw error;
         if (data.user) {
@@ -109,6 +110,13 @@
             });
             if (profileError && data.session) throw profileError;
         }
+        return data;
+    }
+
+    async function resendSignup(email) {
+        const emailRedirectTo = `${global.location.origin}${global.location.pathname}`;
+        const { data, error } = await requireClient().auth.resend({ type: "signup", email, options: { emailRedirectTo } });
+        if (error) throw error;
         return data;
     }
 
@@ -228,6 +236,7 @@
         init,
         signIn,
         signUp,
+        resendSignup,
         signOut,
         loadWorkspace,
         syncNotes,

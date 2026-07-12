@@ -90,11 +90,15 @@
                     <p class="overline">欢迎回来</p>
                     <h1>让每一个念头，<br />都有下一步。</h1>
                     <p class="auth-lead">Action 会从你的零散记录中提炼模式、标记证据，并把洞察变成可执行的行动。</p>
-                    <button class="demo-button" id="demoButton" type="button">
-                        <span>体验完整示例</span>
-                        <svg><use href="#i-arrow" /></svg>
-                    </button>
-                    <div class="auth-divider"><span id="authDividerText">或进入你的本地空间</span></div>
+                    <div class="auth-mode-switch" id="authModeSwitch" role="tablist" aria-label="账号操作" hidden>
+                        <button class="active" id="authLoginTab" data-auth-mode="login" role="tab" aria-selected="true" type="button">登录</button>
+                        <button id="registerButton" data-auth-mode="register" role="tab" aria-selected="false" type="button">注册</button>
+                    </div>
+                    <div class="auth-status" id="authStatus" role="status" aria-live="polite">
+                        <span class="auth-status-icon"><svg><use href="#i-spark" /></svg></span>
+                        <div><strong id="authStatusTitle">本地空间</strong><p class="auth-message" id="authMessage">首次登录会在本机创建独立空间，数据不会上传。</p></div>
+                        <button id="resendVerification" type="button" hidden>重新发送</button>
+                    </div>
                     <form class="auth-form" id="authForm">
                         <label>
                             <span id="authNameLabel">用户名</span>
@@ -104,10 +108,28 @@
                             <span id="authPasscodeLabel">访问码</span>
                             <input id="authPasscode" autocomplete="current-password" minlength="4" placeholder="至少 4 位" required type="password" />
                         </label>
+                        <label id="authConfirmWrap" hidden>
+                            <span>确认密码</span>
+                            <input id="authConfirmPasscode" autocomplete="new-password" minlength="6" placeholder="再次输入密码" type="password" />
+                        </label>
                         <button class="secondary-auth-button" id="authSubmitButton" type="submit">进入空间</button>
-                        <button class="secondary-auth-button cloud-register-button" id="registerButton" type="button" hidden>创建云端账号</button>
                     </form>
-                    <p class="auth-message" id="authMessage">首次登录会在本机创建独立空间，数据不会上传。</p>
+                    <div class="auth-divider"><span id="authDividerText">或者</span></div>
+                    <button class="demo-button" id="demoButton" type="button">
+                        <span>体验完整示例</span>
+                        <svg><use href="#i-arrow" /></svg>
+                    </button>
+                    <section class="auth-success" id="authSuccess" aria-hidden="true" hidden>
+                        <span class="auth-success-mark"><svg><use href="#i-check" /></svg></span>
+                        <p class="overline">ACCOUNT READY</p>
+                        <h2 id="authSuccessTitle">注册成功</h2>
+                        <p id="authSuccessCopy">账号已经创建。</p>
+                        <strong id="authSuccessEmail"></strong>
+                        <div class="auth-success-actions">
+                            <button id="authSuccessLogin" type="button">返回登录</button>
+                            <button id="authSuccessResend" type="button">重新发送验证邮件</button>
+                        </div>
+                    </section>
                 </div>
             </div>
         </section>

@@ -25,6 +25,7 @@ const state = {
     cloudHydrating: false,
     cloudUnsubscribe: null,
     localMigrationCandidate: null,
+    authMode: "login",
     view: "overview",
     filter: "all",
     query: "",
@@ -47,6 +48,19 @@ const el = {
     authDividerText: document.querySelector("#authDividerText"),
     authSubmitButton: document.querySelector("#authSubmitButton"),
     registerButton: document.querySelector("#registerButton"),
+    authLoginTab: document.querySelector("#authLoginTab"),
+    authModeSwitch: document.querySelector("#authModeSwitch"),
+    authConfirmWrap: document.querySelector("#authConfirmWrap"),
+    authConfirmPasscode: document.querySelector("#authConfirmPasscode"),
+    authStatus: document.querySelector("#authStatus"),
+    authStatusTitle: document.querySelector("#authStatusTitle"),
+    resendVerification: document.querySelector("#resendVerification"),
+    authSuccess: document.querySelector("#authSuccess"),
+    authSuccessTitle: document.querySelector("#authSuccessTitle"),
+    authSuccessCopy: document.querySelector("#authSuccessCopy"),
+    authSuccessEmail: document.querySelector("#authSuccessEmail"),
+    authSuccessLogin: document.querySelector("#authSuccessLogin"),
+    authSuccessResend: document.querySelector("#authSuccessResend"),
     demoButton: document.querySelector("#demoButton"),
     spaceName: document.querySelector("#spaceName"),
     activeUserName: document.querySelector("#activeUserName"),
@@ -902,7 +916,8 @@ function renderAuthState() {
 
 function configureCloudUi() {
     if (!state.cloudEnabled) return;
-    el.authDividerText.textContent = "登录后在所有设备同步";
+    el.authModeSwitch.hidden = false;
+    el.authDividerText.textContent = "或先体验";
     el.authNameLabel.textContent = "邮箱";
     el.authPasscodeLabel.textContent = "密码";
     el.authName.type = "email";
@@ -910,9 +925,44 @@ function configureCloudUi() {
     el.authName.placeholder = "name@example.com";
     el.authPasscode.minLength = 6;
     el.authPasscode.placeholder = "至少 6 位";
-    el.authSubmitButton.textContent = "登录云端空间";
-    el.registerButton.hidden = false;
-    setAuthMessage("数据会加密传输，并按账号隔离保存。");
+    setAuthMode("login");
+}
+
+function setAuthMode(mode) {
+    state.authMode = mode === "register" ? "register" : "login";
+    const registering = state.authMode === "register";
+    el.authLoginTab?.classList.toggle("active", !registering);
+    el.registerButton?.classList.toggle("active", registering);
+    el.authLoginTab?.setAttribute("aria-selected", String(!registering));
+    el.registerButton?.setAttribute("aria-selected", String(registering));
+    el.authConfirmWrap.hidden = !registering;
+    el.authConfirmPasscode.required = registering;
+    el.authForm.classList.toggle("register-mode", registering);
+    el.authSubmitButton.textContent = registering ? "创建账号" : "登录";
+    el.authPasscode.autocomplete = registering ? "new-password" : "current-password";
+    el.resendVerification.hidden = true;
+    setAuthMessage(
+        registering ? "注册后需要验证邮箱，点击邮件链接会自动进入 Action。" : "使用已注册的邮箱和密码登录。",
+        false,
+        registering ? "创建云端账号" : "登录云端空间",
+    );
+}
+
+function showAuthSuccess(email, autoEntering = false) {
+    el.authSuccessTitle.textContent = "注册成功";
+    el.authSuccessCopy.textContent = autoEntering
+        ? "账号已经创建，正在进入你的云端空间。"
+        : "验证邮件已经发送。请点击邮件里的验证链接，验证后会自动进入 Action，不需要再次登录。";
+    el.authSuccessEmail.textContent = email;
+    el.authSuccessLogin.hidden = autoEntering;
+    el.authSuccessResend.hidden = autoEntering;
+    el.authSuccess.hidden = false;
+    el.authSuccess.setAttribute("aria-hidden", "false");
+}
+
+function hideAuthSuccess() {
+    el.authSuccess.hidden = true;
+    el.authSuccess.setAttribute("aria-hidden", "true");
 }
 
 function renderNavigation() {
@@ -1572,34 +1622,114 @@ async function deleteNote(id) {
     showToast("输入已删除，相关洞察已重新计算");
 }
 
-function setAuthMessage(message, error = false) {
+function setAuthMessage(message, error = false, title = error ? "操作未完成" : "账号提示") {
+    el.authStatus.hidden = false;
+    el.authStatusTitle.textContent = title;
     el.authMessage.textContent = message;
     el.authMessage.classList.toggle("error", error);
+    el.authStatus.classList.toggle("error", error);
 }
 
 el.demoButton.addEventListener("click", () => setActiveUser(DEMO_USER));
+
+async function resendVerificationEmail() {
+    const email = (el.authSuccessEmail.textContent || el.authName.value).trim();
+    if (!email.includes("@")) {
+        setAuthMessage("请先填写注册邮箱。", true, "缺少邮箱");
+        return;
+    }
+    el.resendVerification.disabled = true;
+    el.authSuccessResend.disabled = true;
+    try {
+        await window.ActionCloud.resendSignup(email);
+        if (!el.authSuccess.hidden) {
+            el.authSuccessCopy.textContent = "新的验证邮件已发送。点击邮件里的验证链接后会自动进入 Action。";
+        } else {
+            setAuthMessage("新的验证邮件已发送，请检查收件箱和垃圾邮件。", false, "验证邮件已重发");
+        }
+    } catch (error) {
+        console.error(error);
+        setAuthMessage("暂时无法重新发送，请一分钟后再试。", true, "发送失败");
+    } finally {
+        el.resendVerification.disabled = false;
+        el.authSuccessResend.disabled = false;
+    }
+}
+
+el.authLoginTab.addEventListener("click", () => setAuthMode("login"));
+el.registerButton.addEventListener("click", () => setAuthMode("register"));
+el.resendVerification.addEventListener("click", resendVerificationEmail);
+el.authSuccessResend.addEventListener("click", resendVerificationEmail);
+el.authSuccessLogin.addEventListener("click", () => {
+    const email = el.authSuccessEmail.textContent;
+    hideAuthSuccess();
+    setAuthMode("login");
+    el.authName.value = email;
+    el.authPasscode.value = "";
+    el.authPasscode.focus();
+});
 
 el.authForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const name = el.authName.value.trim().replace(/\s+/g, " ");
     const passcode = el.authPasscode.value.trim();
     if (state.cloudEnabled) {
+        const registering = state.authMode === "register";
         if (!name.includes("@") || passcode.length < 6) {
-            setAuthMessage("请输入正确邮箱，密码至少 6 位。", true);
+            setAuthMessage("请输入正确邮箱，密码至少 6 位。", true, "请检查输入");
+            return;
+        }
+        if (registering && passcode !== el.authConfirmPasscode.value.trim()) {
+            setAuthMessage("两次输入的密码不一致。", true, "密码没有对上");
+            el.authConfirmPasscode.focus();
             return;
         }
         el.authSubmitButton.disabled = true;
-        el.authSubmitButton.textContent = "正在登录";
+        el.authSubmitButton.textContent = registering ? "正在创建账号" : "正在登录";
         try {
-            const { user } = await window.ActionCloud.signIn(name, passcode);
-            await activateCloudUser(user);
-            el.authForm.reset();
+            if (registering) {
+                const data = await window.ActionCloud.signUp(name, passcode, name.split("@")[0]);
+                const alreadyRegistered = data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0;
+                if (alreadyRegistered) {
+                    setAuthMode("login");
+                    el.authName.value = name;
+                    el.resendVerification.hidden = false;
+                    setAuthMessage("这个邮箱已经注册。如果还没验证邮箱，可以重新发送验证邮件。", true, "账号已经存在");
+                } else if (data.session && data.user) {
+                    showAuthSuccess(name, true);
+                    await delay(1100);
+                    await activateCloudUser(data.user);
+                    hideAuthSuccess();
+                    el.authForm.reset();
+                } else {
+                    showAuthSuccess(name, false);
+                    el.authForm.reset();
+                }
+            } else {
+                const { user } = await window.ActionCloud.signIn(name, passcode);
+                await activateCloudUser(user);
+                el.authForm.reset();
+            }
         } catch (error) {
             console.error(error);
-            setAuthMessage(error.message?.includes("Invalid login") ? "邮箱或密码不正确。" : "登录失败，请检查网络后重试。", true);
+            const message = String(error.message || "").toLowerCase();
+            if (message.includes("email not confirmed")) {
+                setAuthMode("login");
+                el.resendVerification.hidden = false;
+                setAuthMessage("账号已创建，但邮箱还没有验证。请先点击验证邮件里的链接；验证后会自动进入。", true, "邮箱尚未验证");
+            } else if (message.includes("invalid login")) {
+                setAuthMessage("邮箱或密码不正确。如果刚完成注册，请先确认邮箱已经验证。", true, "登录信息不正确");
+            } else if (message.includes("already registered")) {
+                setAuthMode("login");
+                setAuthMessage("这个邮箱已经注册，请直接登录。", true, "账号已经存在");
+            } else if (message.includes("fetch") || message.includes("network")) {
+                setAuthMessage("网络连接失败，请检查网络后重试。", true, "无法连接云端");
+            } else {
+                setAuthMessage(registering ? "注册暂时失败，请稍后重试。" : "登录暂时失败，请稍后重试。", true);
+            }
         } finally {
             el.authSubmitButton.disabled = false;
-            el.authSubmitButton.textContent = "登录云端空间";
+            el.authSubmitButton.textContent = state.authMode === "register" ? "创建账号" : "登录";
         }
         return;
     }
@@ -1622,32 +1752,6 @@ el.authForm.addEventListener("submit", async (event) => {
     el.authForm.reset();
     setAuthMessage("首次登录会在本机创建独立空间，数据不会上传。");
     setActiveUser(user);
-});
-
-el.registerButton.addEventListener("click", async () => {
-    const email = el.authName.value.trim();
-    const password = el.authPasscode.value.trim();
-    if (!email.includes("@") || password.length < 6) {
-        setAuthMessage("先填写邮箱和至少 6 位密码，再创建账号。", true);
-        return;
-    }
-    el.registerButton.disabled = true;
-    el.registerButton.textContent = "正在创建";
-    try {
-        const data = await window.ActionCloud.signUp(email, password, email.split("@")[0]);
-        if (data.session && data.user) {
-            await activateCloudUser(data.user);
-            el.authForm.reset();
-        } else {
-            setAuthMessage("账号已创建，请前往邮箱完成验证后再登录。", false);
-        }
-    } catch (error) {
-        console.error(error);
-        setAuthMessage(error.message?.includes("already registered") ? "该邮箱已经注册，请直接登录。" : "账号创建失败，请稍后重试。", true);
-    } finally {
-        el.registerButton.disabled = false;
-        el.registerButton.textContent = "创建云端账号";
-    }
 });
 
 document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => switchView(button.dataset.view)));
