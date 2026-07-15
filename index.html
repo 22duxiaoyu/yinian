@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-21" />
+        <link rel="stylesheet" href="./styles.css?v=action-22" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -59,6 +59,9 @@
             <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-3 8-10V5l-8-3-8 3v7c0 7 8 10 8 10Z" /><path d="m9 12 2 2 4-4" /></symbol>
             <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 20h14" /></symbol>
             <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14" /></symbol>
+            <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4" /></symbol>
+            <symbol id="i-camera" viewBox="0 0 24 24"><path d="M14.5 4 16 6h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3l1.5-2h5Z" /><circle cx="12" cy="13" r="3" /></symbol>
+            <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></symbol>
             <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" /></symbol>
             <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4 11.5-11.5Z" /></symbol>
             <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 11H4a6 6 0 0 1 6-6v3a3 3 0 0 0-3 3v8h2v-8ZM20 11h-5a6 6 0 0 1 6-6v3a3 3 0 0 0-3 3v8h2v-8Z" /></symbol>
@@ -73,11 +76,11 @@
                 </div>
                 <div class="auth-insight">
                     <div class="auth-orbit"><span></span><i></i><b></b></div>
-                    <p>本周核心洞察</p>
+                    <p>示例洞察</p>
                     <h2>你不是缺少计划，<br />而是启动动作太大。</h2>
                     <div class="auth-evidence">
-                        <span>6 条相关记录</span>
-                        <span>置信度 86%</span>
+                        <span><svg><use href="#i-file" /></svg>保留原始表达</span>
+                        <span><svg><use href="#i-check" /></svg>结论由你确认</span>
                     </div>
                 </div>
                 <div class="auth-trace">
@@ -119,6 +122,7 @@
                         <span>体验完整示例</span>
                         <svg><use href="#i-arrow" /></svg>
                     </button>
+                    <p class="auth-legal">继续即表示你已阅读并同意 <a href="./terms.html" target="_blank" rel="noopener">服务条款</a> 与 <a href="./privacy.html" target="_blank" rel="noopener">隐私说明</a>。</p>
                     <section class="auth-success" id="authSuccess" aria-hidden="true" hidden>
                         <span class="auth-success-mark"><svg><use href="#i-check" /></svg></span>
                         <p class="overline">ACCOUNT READY</p>
@@ -169,13 +173,14 @@
                     <p id="engineStatusCopy">前端验证版 · 数据仅保存在本机</p>
                 </section>
                 <div class="profile-row">
-                    <span class="avatar" id="userInitial">访</span>
-                    <span><strong id="activeUserName">作品集访客</strong><small>个人空间</small></span>
+                    <span class="avatar" id="userAvatar"><img id="userAvatarImage" alt="" hidden /><b id="userInitial">访</b></span>
+                    <span><strong id="activeUserName">作品集访客</strong><small id="activeUserMeta">个人空间</small></span>
                     <button class="icon-button" id="profileButton" type="button" title="账户菜单"><svg><use href="#i-more" /></svg></button>
                     <div class="profile-menu" id="profileMenu" hidden>
-                        <button id="exportNotes" type="button"><svg><use href="#i-download" /></svg>导出数据</button>
-                        <label><svg><use href="#i-upload" /></svg>导入数据<input id="importNotes" type="file" accept="application/json" /></label>
-                        <button id="logoutButton" type="button"><svg><use href="#i-arrow" /></svg>退出空间</button>
+                        <div class="profile-menu-summary"><strong id="profileMenuName">作品集访客</strong><small id="profileMenuEmail">本地个人空间</small></div>
+                        <button class="profile-menu-primary" id="settingsButton" type="button"><svg><use href="#i-settings" /></svg><span><strong>个人设置</strong><small>头像、名称与偏好</small></span></button>
+                        <div class="profile-menu-divider"></div>
+                        <button id="logoutButton" type="button"><svg><use href="#i-arrow" /></svg><span id="logoutLabel">退出空间</span></button>
                     </div>
                 </div>
             </aside>
@@ -309,8 +314,12 @@
                     <section class="app-view" id="view-weekly" data-view-panel="weekly">
                         <div class="page-heading compact-heading">
                             <div><p class="overline">WEEKLY BRIEF</p><h1>本周思考简报</h1><p><span id="weeklyRange">本周</span><span class="weekly-live-status"><i></i>随输入实时更新</span></p></div>
-                            <button class="outline-button" id="copyWeekly" type="button"><svg><use href="#i-download" /></svg><span>复制简报</span></button>
+                            <div class="weekly-heading-actions">
+                                <label class="weekly-history-control"><span>查看周期</span><select id="weeklyHistorySelect" aria-label="选择周报周期"><option value="">本周实时简报</option></select></label>
+                                <button class="outline-button" id="copyWeekly" type="button"><svg><use href="#i-download" /></svg><span>复制简报</span></button>
+                            </div>
                         </div>
+                        <div class="weekly-trend" id="weeklyTrend" aria-live="polite"></div>
                         <article class="weekly-report weekly-map-report" data-layout="balanced" data-has-actions="true">
                             <header><span>ACTION / WEEKLY MAP <em id="weeklyLayoutLabel">AI 标准布局</em></span><strong id="weeklyDate">--</strong></header>
                             <section class="weekly-map-intro"><div><p>本周复盘地图</p><h2>一张图看清本周发生了什么。</h2><span id="weeklyLayoutSummary">中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。</span></div><dl><div><dt>本周输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成行动</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动完成率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl></section>
@@ -352,9 +361,9 @@
                         </section>
                         <div class="case-section-title"><span>03</span><div><p>DELIVERY STRATEGY</p><h2>用阶段性交付降低最大风险。</h2></div></div>
                         <section class="roadmap">
-                            <div class="roadmap-item complete"><span>Phase 01</span><h3>验证工作流</h3><p>本地数据、完整交互、规则引擎模拟，先验证用户是否愿意确认洞察并转成行动。</p><em>当前版本</em></div>
-                            <div class="roadmap-item"><span>Phase 02</span><h3>验证智能质量</h3><p>接入模型服务、真实账户与云同步，建立基于用户反馈的评测集。</p><em>Next</em></div>
-                            <div class="roadmap-item"><span>Phase 03</span><h3>验证长期价值</h3><p>加入跨周期记忆与主动建议，观察 4 周留存和行动反馈密度。</p><em>Later</em></div>
+                            <div class="roadmap-item complete"><span>Phase 01</span><h3>验证工作流</h3><p>完成从输入、证据、人工确认到行动结果的闭环，并保留本地体验模式。</p><em>已完成</em></div>
+                            <div class="roadmap-item complete"><span>Phase 02</span><h3>验证智能与云端</h3><p>接入 DeepSeek、真实账户、私有同步、反馈学习、自动化测试与离线评测。</p><em>已完成</em></div>
+                            <div class="roadmap-item"><span>Phase 03</span><h3>验证长期价值</h3><p>邀请真实目标用户连续使用 4 周，用留存、行动反馈密度和访谈验证价值。</p><em>当前验证</em></div>
                         </section>
                     </section>
                 </div>
@@ -374,7 +383,82 @@
                         <div class="complete"><i><svg><use href="#i-check" /></svg></i><span><strong>交叉验证</strong><small>排除 2 条弱相关表达</small></span></div>
                     </div>
                 </div>
+                <p class="ai-boundary-note"><svg><use href="#i-shield" /></svg><span>AI 可能出错。它只整理和建议，不替你确认洞察或做决定。</span></p>
             </aside>
+        </div>
+
+        <div class="modal-backdrop" id="settingsModal" hidden>
+            <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" aria-hidden="true">
+                <header>
+                    <div><span class="modal-icon"><svg><use href="#i-settings" /></svg></span><span><strong id="settingsTitle">个人设置</strong><small>管理你的资料、偏好和本地数据。</small></span></div>
+                    <button class="icon-button" data-close-settings type="button" title="关闭"><svg><use href="#i-x" /></svg></button>
+                </header>
+                <form id="settingsForm">
+                    <div class="settings-profile-row">
+                        <label class="settings-avatar-control" for="settingsAvatarInput" title="更换头像">
+                            <span class="settings-avatar-preview"><img id="settingsAvatarImage" alt="头像预览" hidden /><b id="settingsAvatarInitial">A</b></span>
+                            <span class="settings-avatar-camera"><svg><use href="#i-camera" /></svg></span>
+                        </label>
+                        <input id="settingsAvatarInput" type="file" accept="image/jpeg,image/png,image/webp" hidden />
+                        <div><strong id="settingsProfileName">Action 用户</strong><p id="settingsProfileEmail">个人空间</p><button id="removeAvatar" type="button">移除自定义头像</button></div>
+                    </div>
+
+                    <section class="settings-section">
+                        <div class="settings-section-title"><span>个人资料</span><small>用于问候语和个人空间显示</small></div>
+                        <label class="settings-field"><span>显示名称</span><input id="settingsDisplayName" maxlength="32" placeholder="输入你的名称" required /></label>
+                    </section>
+
+                    <section class="settings-section">
+                        <div class="settings-section-title"><span>使用偏好</span><small>只保留真正影响体验的选项</small></div>
+                        <label class="settings-field settings-select"><span>登录后默认进入</span><select id="settingsStartView"><option value="overview">工作台</option><option value="library">灵感库</option><option value="insights">洞察</option><option value="actions">行动</option><option value="weekly">周报</option></select></label>
+                        <label class="settings-toggle"><span><strong>减少动态效果</strong><small>降低页面位移和状态动画</small></span><input id="settingsReduceMotion" type="checkbox" /><i aria-hidden="true"></i></label>
+                    </section>
+
+                    <section class="settings-section settings-data-section">
+                        <div class="settings-section-title"><span>数据管理</span><small>完整备份资料、洞察、行动结果与周报</small></div>
+                        <div class="settings-data-actions">
+                            <button id="exportNotes" type="button"><svg><use href="#i-download" /></svg><span><strong>导出完整数据</strong><small>下载可恢复的 Action JSON</small></span></button>
+                            <label><svg><use href="#i-upload" /></svg><span><strong>导入数据</strong><small>从 Action 备份恢复</small></span><input id="importNotes" type="file" accept="application/json" /></label>
+                        </div>
+                    </section>
+
+                    <section class="settings-section settings-feedback-section">
+                        <div class="settings-section-title"><span>帮助改进 Action</span><small>反馈不会进入你的洞察语料</small></div>
+                        <div class="settings-feedback-grid">
+                            <label><span>本次体验</span><select id="productFeedbackScore"><option value="5">非常顺畅</option><option value="4">基本顺畅</option><option value="3">还可以</option><option value="2">有些费解</option><option value="1">无法完成任务</option></select></label>
+                            <label><span>最需要改进的地方</span><textarea id="productFeedbackMessage" rows="2" maxlength="800" placeholder="一句话也可以"></textarea></label>
+                            <button id="submitProductFeedback" type="button">提交反馈</button>
+                        </div>
+                    </section>
+
+                    <section class="settings-section settings-privacy-section">
+                        <div class="settings-section-title"><span>隐私与账户</span><small>你的内容归你控制</small></div>
+                        <div class="settings-legal-links"><a href="./privacy.html" target="_blank" rel="noopener">隐私说明</a><a href="./terms.html" target="_blank" rel="noopener">服务条款</a><button id="showDeleteAccount" type="button">删除账户与全部数据</button></div>
+                        <div class="delete-account-confirm" id="deleteAccountConfirm" hidden>
+                            <p><strong>此操作无法撤销</strong><span>云端记录、文档、洞察、周报和头像都会永久删除。请输入“删除”确认。</span></p>
+                            <div><input id="deleteAccountInput" autocomplete="off" placeholder="输入：删除" /><button id="deleteAccountButton" type="button" disabled>永久删除</button></div>
+                        </div>
+                    </section>
+
+                    <footer><span id="settingsSaveHint">修改后点击保存</span><div><button class="ghost-button" data-close-settings type="button">取消</button><button class="primary-button" id="settingsSave" type="submit"><span>保存设置</span><svg><use href="#i-arrow" /></svg></button></div></footer>
+                </form>
+            </section>
+        </div>
+
+        <div class="modal-backdrop" id="actionFeedbackModal" hidden>
+            <section class="action-feedback-modal" role="dialog" aria-modal="true" aria-labelledby="actionFeedbackTitle">
+                <header><div><span class="modal-icon"><svg><use href="#i-trend" /></svg></span><span><strong>记录行动结果</strong><small>结果会进入下一轮洞察和周报。</small></span></div><button class="icon-button" data-close-action-feedback type="button" title="稍后填写"><svg><use href="#i-x" /></svg></button></header>
+                <form id="actionFeedbackForm">
+                    <div class="action-feedback-context"><span>刚刚完成</span><strong id="actionFeedbackTitle">行动</strong></div>
+                    <fieldset id="actionResultOutcome"><legend>这个结果是否支持原来的判断？</legend><div>
+                        <label><input type="radio" name="resultOutcome" value="supported" checked /><span>支持判断</span></label>
+                        <label><input type="radio" name="resultOutcome" value="unclear" /><span>还不确定</span></label>
+                        <label><input type="radio" name="resultOutcome" value="disproved" /><span>不支持</span></label>
+                    </div></fieldset>
+                    <label class="action-result-field"><span>实际发生了什么 <em>选填</em></span><textarea id="actionResultText" rows="4" maxlength="600" placeholder="例如：15 分钟内完成了第一版，但用户仍不清楚核心价值。"></textarea></label>
+                    <footer><button class="ghost-button" data-close-action-feedback type="button">稍后填写</button><button class="primary-button" type="submit"><span>保存结果</span><svg><use href="#i-arrow" /></svg></button></footer>
+                </form>
+            </section>
         </div>
 
         <div class="modal-backdrop" id="captureModal" hidden>
@@ -428,7 +512,7 @@
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
         <script src="./cloud-config.js?v=1"></script>
-        <script src="./cloud.js?v=1"></script>
-        <script src="./app.js?v=22"></script>
+        <script src="./cloud.js?v=3"></script>
+        <script src="./app.js?v=24"></script>
     </body>
 </html>

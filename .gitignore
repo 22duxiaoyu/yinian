@@ -6,3 +6,5 @@
 .supabase/
 supabase/.temp/
 node_modules/
+test-results/
+playwright-report/

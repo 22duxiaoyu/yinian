@@ -1,0 +1,14 @@
+{
+  "name": "action-thinking-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/static.test.mjs",
+    "test:e2e": "playwright test",
+    "eval": "node scripts/validate-evals.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}

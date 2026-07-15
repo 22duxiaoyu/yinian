@@ -42,17 +42,21 @@ Deno.serve(async (request) => {
   try {
     const { client, user } = await authenticatedClient(request);
     const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-    const [{ data: notes, error: notesError }, { data: documents, error: documentsError }] = await Promise.all([
-      client.from("notes").select("id,title,content,type,mood,tags,done,created_at,updated_at").gte("updated_at", since).order("updated_at", { ascending: false }).limit(80),
+    const [{ data: notes, error: notesError }, { data: documents, error: documentsError }, { data: existing, error: existingError }, { data: feedback, error: feedbackError }] = await Promise.all([
+      client.from("notes").select("id,title,content,type,mood,tags,done,result_text,result_outcome,completed_at,created_at,updated_at").gte("updated_at", since).order("updated_at", { ascending: false }).limit(80),
       client.from("documents").select("id,name,summary,keywords,parsed_at").gte("parsed_at", since).order("parsed_at", { ascending: false }).limit(30),
+      client.from("insights").select("insight_key,title,status,decided_at").order("updated_at", { ascending: false }).limit(10),
+      client.from("insight_feedback").select("insight_key,insight_title,insight_topic,decision,created_at").order("created_at", { ascending: false }).limit(30),
     ]);
     if (notesError) throw notesError;
     if (documentsError) throw documentsError;
+    if (existingError) throw existingError;
+    if (feedbackError) throw feedbackError;
     if (!(notes?.length || documents?.length)) return json(request, { insights: [] });
 
     const generated = await generateJson(
-      "你是 Action 的洞察引擎。找出跨记录重复出现、能够被原文验证的模式。避免把单条表达推断成稳定结论。全部文案使用中文。输出对象必须包含 insights 数组，恰好 3 条；每条包含 id、label、topic、title、detail、evidence、confidence、accent、evidence_refs。evidence 必须是证据条数整数，confidence 必须是 0-100 整数，accent 必须是六位十六进制颜色，evidence_refs 只引用输入中的 id。第一条是最重要判断，后两条是潜在张力和正向变化。严格参考这个顶层结构：{\"insights\":[{\"id\":\"pattern\",\"label\":\"行为模式\",\"topic\":\"主题\",\"title\":\"判断\",\"detail\":\"解释\",\"evidence\":2,\"confidence\":80,\"accent\":\"#667d92\",\"evidence_refs\":[]}]}。",
-      { notes: notes || [], documents: documents || [] },
+      "你是 Action 的洞察引擎。找出跨记录重复出现、能够被原文验证的模式。避免把单条表达推断成稳定结论。用户已确认的判断可提高优先级，已驳回的判断不得换句话重复，除非新证据明确推翻旧反馈。行动结果比计划表达权重更高。全部文案使用中文。输出对象必须包含 insights 数组，恰好 3 条；每条包含 id、label、topic、title、detail、evidence、confidence、accent、evidence_refs。id 依次固定为 pattern、tension、change。evidence 必须是证据条数整数，confidence 必须是 0-100 整数，accent 必须是六位十六进制颜色，evidence_refs 只引用输入中的 id。第一条是最重要判断，后两条是潜在张力和正向变化。严格参考这个顶层结构：{\"insights\":[{\"id\":\"pattern\",\"label\":\"行为模式\",\"topic\":\"主题\",\"title\":\"判断\",\"detail\":\"解释\",\"evidence\":2,\"confidence\":80,\"accent\":\"#667d92\",\"evidence_refs\":[]}]}。",
+      { notes: notes || [], documents: documents || [], human_feedback: feedback || [] },
     );
 
     const palette = ["#667d92", "#b7835a", "#718f7f"];
@@ -62,22 +66,27 @@ Deno.serve(async (request) => {
       const value = generated && typeof generated === "object" && !Array.isArray(generated) ? (generated as { insights?: unknown }).insights : generated;
       console.warn("DeepSeek insight schema mismatch", { topKeys, valueType: Array.isArray(value) ? "array" : typeof value });
     }
+    const allowedRefs = new Set([...(notes || []).map((item) => item.id), ...(documents || []).map((item) => item.id)]);
+    const previousByKey = new Map((existing || []).map((item) => [item.insight_key, item]));
+    const insightKeys = ["pattern", "tension", "change"];
     const insights = generatedItems.slice(0, 3).map((item, index) => {
       const evidence = Number(item.evidence);
       const confidence = Number(item.confidence);
       const accent = String(item.accent || "");
+      const evidenceRefs = Array.isArray(item.evidence_refs) ? [...new Set(item.evidence_refs.map(String).filter((id) => allowedRefs.has(id)))].slice(0, 12) : [];
       return {
         user_id: user.id,
-        insight_key: `insight-${index + 1}`,
+        insight_key: insightKeys[index],
         label: String(item.label || "行为模式"),
         topic: String(item.topic || "待确认主题"),
         title: String(item.title || "需要更多输入才能形成稳定判断"),
         detail: String(item.detail || "当前证据仍然有限。"),
-        evidence_count: Number.isFinite(evidence) ? Math.max(0, Math.round(evidence)) : 0,
+        evidence_count: evidenceRefs.length || (Number.isFinite(evidence) ? Math.max(0, Math.round(evidence)) : 0),
         confidence: Number.isFinite(confidence) ? Math.min(100, Math.max(0, Math.round(confidence))) : 0,
         accent: /^#[0-9a-f]{6}$/i.test(accent) ? accent : palette[index],
-        status: "pending",
-        evidence_refs: Array.isArray(item.evidence_refs) ? item.evidence_refs : [],
+        status: previousByKey.get(insightKeys[index])?.status || "pending",
+        decided_at: previousByKey.get(insightKeys[index])?.decided_at || null,
+        evidence_refs: evidenceRefs,
       };
     });
     if (!insights.length) throw new Error("DEEPSEEK_EMPTY_RESPONSE");

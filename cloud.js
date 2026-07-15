@@ -54,6 +54,10 @@
             done: row.done,
             pinned: row.pinned,
             archived: row.archived,
+            sourceInsightKey: row.source_insight_key || "",
+            resultText: row.result_text || "",
+            resultOutcome: row.result_outcome || "",
+            completedAt: row.completed_at || null,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         };
@@ -67,6 +71,7 @@
             size: Number(row.size_bytes || 0),
             status: row.status,
             summary: row.summary,
+            extractedText: row.extracted_text || "",
             keywords: row.keywords || [],
             cards: Array.isArray(row.cards) ? row.cards : [],
             parsedAt: row.parsed_at,
@@ -85,8 +90,22 @@
             confidence: Number(row.confidence || 0),
             accent: row.accent,
             status: row.status,
+            decidedAt: row.decided_at || null,
             evidenceRefs: Array.isArray(row.evidence_refs) ? row.evidence_refs : [],
         };
+    }
+
+    function mapWeeklyReport(row) {
+        return row ? {
+            id: row.id,
+            weekStart: row.week_start,
+            weekEnd: row.week_end,
+            layout: row.layout,
+            theme: row.theme,
+            report: row.report || {},
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+        } : null;
     }
 
     async function signIn(email, password) {
@@ -128,11 +147,11 @@
     async function loadWorkspace(user) {
         const api = requireClient();
         const [profileResult, notesResult, documentsResult, insightsResult, weeklyResult] = await Promise.all([
-            api.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+            api.from("profiles").select("display_name,avatar_path,preferences").eq("id", user.id).maybeSingle(),
             api.from("notes").select("*").order("updated_at", { ascending: false }),
             api.from("documents").select("*").order("parsed_at", { ascending: false }),
             api.from("insights").select("*").order("updated_at", { ascending: false }),
-            api.from("weekly_reports").select("*").order("week_start", { ascending: false }).limit(1).maybeSingle(),
+            api.from("weekly_reports").select("*").order("week_start", { ascending: false }).limit(8),
         ]);
         const error = [profileResult, notesResult, documentsResult, insightsResult, weeklyResult].find((result) => result.error)?.error;
         if (error) throw error;
@@ -141,17 +160,27 @@
             const { error: profileError } = await api.from("profiles").upsert({ id: user.id, display_name: fallbackName });
             if (profileError) throw profileError;
         }
+        const avatarPath = profileResult.data?.avatar_path || null;
+        let avatarUrl = "";
+        if (avatarPath) {
+            const { data: avatarData, error: avatarError } = await api.storage.from("action-avatars").createSignedUrl(avatarPath, 604800);
+            if (!avatarError) avatarUrl = avatarData?.signedUrl || "";
+        }
         return {
             user: {
                 id: user.id,
                 email: user.email || "",
                 name: profileResult.data?.display_name || fallbackName,
+                avatarPath,
+                avatarUrl,
+                preferences: profileResult.data?.preferences || {},
                 cloud: true,
             },
             notes: (notesResult.data || []).map(mapNote),
             documents: (documentsResult.data || []).map(mapDocument),
             insights: (insightsResult.data || []).map(mapInsight),
-            weeklyReport: weeklyResult.data || null,
+            weeklyReports: (weeklyResult.data || []).map(mapWeeklyReport),
+            weeklyReport: mapWeeklyReport(weeklyResult.data?.[0] || null),
         };
     }
 
@@ -168,6 +197,10 @@
             done: Boolean(note.done),
             pinned: Boolean(note.pinned),
             archived: Boolean(note.archived),
+            source_insight_key: note.sourceInsightKey || null,
+            result_text: note.resultText || "",
+            result_outcome: note.resultOutcome || null,
+            completed_at: note.completedAt || null,
             created_at: note.createdAt,
             updated_at: note.updatedAt,
         }));
@@ -186,6 +219,7 @@
             size_bytes: Number(document.size || 0),
             status: document.status,
             summary: document.summary,
+            extracted_text: document.extractedText || "",
             keywords: document.keywords || [],
             cards: document.cards || [],
             parsed_at: document.parsedAt,
@@ -194,6 +228,59 @@
         const { data, error } = await requireClient().from("documents").upsert(rows).select();
         if (error) throw error;
         return data.map(mapDocument);
+    }
+
+    async function syncInsights(userId, insights) {
+        if (!insights.length) return [];
+        const rows = insights.map((insight, index) => ({
+            user_id: userId,
+            insight_key: insight.id || ["pattern", "tension", "change"][index] || `restored-${index + 1}`,
+            label: insight.label || "行为模式",
+            topic: insight.topic || "待确认主题",
+            title: insight.title || "待确认洞察",
+            detail: insight.detail || "",
+            evidence_count: Number(insight.evidence || 0),
+            confidence: Math.min(100, Math.max(0, Number(insight.confidence || 0))),
+            accent: /^#[0-9a-f]{6}$/i.test(insight.accent || "") ? insight.accent : "#667d92",
+            status: ["pending", "confirmed", "rejected"].includes(insight.status) ? insight.status : "pending",
+            decided_at: insight.decidedAt || null,
+            evidence_refs: Array.isArray(insight.evidenceRefs) ? insight.evidenceRefs : [],
+        }));
+        const { data, error } = await requireClient().from("insights").upsert(rows, { onConflict: "user_id,insight_key" }).select();
+        if (error) throw error;
+        return data.map(mapInsight);
+    }
+
+    async function syncWeeklyReports(userId, reports) {
+        if (!reports.length) return [];
+        const rows = reports.filter((report) => report.weekStart && report.weekEnd).map((report) => ({
+            user_id: userId,
+            week_start: report.weekStart,
+            week_end: report.weekEnd,
+            layout: ["sparse", "balanced", "dense"].includes(report.layout) ? report.layout : "balanced",
+            theme: report.theme || report.report?.theme || "历史周报",
+            report: report.report || {},
+        }));
+        if (!rows.length) return [];
+        const { data, error } = await requireClient().from("weekly_reports").upsert(rows, { onConflict: "user_id,week_start" }).select();
+        if (error) throw error;
+        return data.map(mapWeeklyReport);
+    }
+
+    async function exportWorkspace() {
+        const api = requireClient();
+        const [insightFeedback, analytics, productFeedback] = await Promise.all([
+            api.from("insight_feedback").select("*").order("created_at", { ascending: false }),
+            api.from("analytics_events").select("*").order("created_at", { ascending: false }),
+            api.from("product_feedback").select("*").order("created_at", { ascending: false }),
+        ]);
+        const failed = [insightFeedback, analytics, productFeedback].find((result) => result.error);
+        if (failed?.error) throw failed.error;
+        return {
+            insightFeedback: insightFeedback.data || [],
+            analyticsEvents: analytics.data || [],
+            productFeedback: productFeedback.data || [],
+        };
     }
 
     async function uploadDocument(userId, file, document) {
@@ -206,6 +293,77 @@
         document.storagePath = storagePath;
         await syncDocuments(userId, [document]);
         return document;
+    }
+
+    async function updateProfile(userId, { displayName, avatarPath, preferences }) {
+        const { data, error } = await requireClient().from("profiles").upsert({
+            id: userId,
+            display_name: displayName,
+            avatar_path: avatarPath || null,
+            preferences: preferences || {},
+        }).select("display_name,avatar_path,preferences").single();
+        if (error) throw error;
+        return data;
+    }
+
+    async function updateInsightStatus(userId, insight, status) {
+        const decidedAt = new Date().toISOString();
+        const api = requireClient();
+        const { data, error } = await api.from("insights")
+            .update({ status, decided_at: decidedAt })
+            .eq("user_id", userId)
+            .eq("insight_key", insight.id)
+            .select()
+            .single();
+        if (error) throw error;
+        const { error: feedbackError } = await api.from("insight_feedback").insert({
+            user_id: userId,
+            insight_key: insight.id,
+            insight_title: insight.title,
+            insight_topic: insight.topic,
+            decision: status,
+        });
+        if (feedbackError) throw feedbackError;
+        return mapInsight(data);
+    }
+
+    async function trackEvent(userId, eventName, page, properties = {}) {
+        const { error } = await requireClient().from("analytics_events").insert({
+            user_id: userId,
+            event_name: eventName,
+            page: page || "",
+            properties,
+        });
+        if (error) throw error;
+    }
+
+    async function submitFeedback(userId, score, category, message, context = {}) {
+        const { error } = await requireClient().from("product_feedback").insert({
+            user_id: userId,
+            score,
+            category,
+            message,
+            context,
+        });
+        if (error) throw error;
+    }
+
+    async function uploadAvatar(userId, file, previousPath = null) {
+        const api = requireClient();
+        const extension = file.type === "image/png" ? "png" : file.type === "image/jpeg" ? "jpg" : "webp";
+        const path = `${userId}/avatar-${Date.now()}.${extension}`;
+        const { error: uploadError } = await api.storage.from("action-avatars").upload(path, file, { upsert: false, contentType: file.type });
+        if (uploadError) throw uploadError;
+        if (previousPath && previousPath !== path) await api.storage.from("action-avatars").remove([previousPath]);
+        const { data, error } = await api.storage.from("action-avatars").createSignedUrl(path, 604800);
+        if (error) throw error;
+        return { path, url: data.signedUrl };
+    }
+
+    async function removeAvatar(path) {
+        if (!path) return;
+        const { error } = await requireClient().storage.from("action-avatars").remove([path]);
+        if (error) throw error;
     }
 
     async function remove(table, id, storagePath) {
@@ -227,6 +385,7 @@
         ["notes", "documents", "insights", "weekly_reports"].forEach((table) => {
             channel.on("postgres_changes", { event: "*", schema: "public", table, filter: `user_id=eq.${userId}` }, onChange);
         });
+        channel.on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${userId}` }, onChange);
         channel.subscribe();
         return () => api.removeChannel(channel);
     }
@@ -241,10 +400,20 @@
         loadWorkspace,
         syncNotes,
         syncDocuments,
+        syncInsights,
+        syncWeeklyReports,
+        exportWorkspace,
         uploadDocument,
+        updateProfile,
+        updateInsightStatus,
+        trackEvent,
+        submitFeedback,
+        uploadAvatar,
+        removeAvatar,
         remove,
         invoke,
         subscribe,
         mapInsight,
+        mapWeeklyReport,
     };
 })(window);
