@@ -58,6 +58,8 @@ const el = {
     authForm: document.querySelector("#authForm"),
     authName: document.querySelector("#authName"),
     authPasscode: document.querySelector("#authPasscode"),
+    authNameHelp: document.querySelector("#authNameHelp"),
+    authPasscodeHelp: document.querySelector("#authPasscodeHelp"),
     authMessage: document.querySelector("#authMessage"),
     authNameLabel: document.querySelector("#authNameLabel"),
     authPasscodeLabel: document.querySelector("#authPasscodeLabel"),
@@ -68,6 +70,7 @@ const el = {
     authModeSwitch: document.querySelector("#authModeSwitch"),
     authConfirmWrap: document.querySelector("#authConfirmWrap"),
     authConfirmPasscode: document.querySelector("#authConfirmPasscode"),
+    authConfirmHelp: document.querySelector("#authConfirmHelp"),
     authOtpPanel: document.querySelector("#authOtpPanel"),
     authOtpEmail: document.querySelector("#authOtpEmail"),
     authOtpInputs: document.querySelector("#authOtpInputs"),
@@ -80,6 +83,12 @@ const el = {
     authSuccessTitle: document.querySelector("#authSuccessTitle"),
     authSuccessCopy: document.querySelector("#authSuccessCopy"),
     authSuccessEmail: document.querySelector("#authSuccessEmail"),
+    errorDialog: document.querySelector("#errorDialog"),
+    errorDialogTitle: document.querySelector("#errorDialogTitle"),
+    errorDialogMessage: document.querySelector("#errorDialogMessage"),
+    errorDialogGuidance: document.querySelector("#errorDialogGuidance"),
+    errorDialogClose: document.querySelector("#errorDialogClose"),
+    errorDialogCloseIcon: document.querySelector("#errorDialogCloseIcon"),
     demoButton: document.querySelector("#demoButton"),
     spaceName: document.querySelector("#spaceName"),
     activeUserName: document.querySelector("#activeUserName"),
@@ -1139,6 +1148,7 @@ function setAuthMode(mode) {
     el.authForm.classList.toggle("register-mode", registering);
     el.authSubmitButton.textContent = registering ? "创建账号" : "登录";
     el.authPasscode.autocomplete = registering ? "new-password" : "current-password";
+    resetAuthFieldMessages();
     clearAuthMessage();
 }
 
@@ -1161,9 +1171,87 @@ function clearAuthMessage() {
     el.authMessage.classList.remove("error", "success");
 }
 
+function authFieldDefaults() {
+    if (!state.cloudEnabled) {
+        return { name: "输入你的空间名称。", passcode: "至少 4 位。", confirm: "请再次输入相同访问码。" };
+    }
+    if (state.authMode === "register") {
+        return { name: "用于接收验证邮件，请填写常用邮箱。", passcode: "至少 6 位，建议同时使用字母和数字。", confirm: "请再次输入相同密码。" };
+    }
+    return { name: "请输入注册邮箱。", passcode: "输入注册时设置的密码。", confirm: "请再次输入相同密码。" };
+}
+
+function setAuthFieldState(input, help, message, error = false) {
+    input.setAttribute("aria-invalid", String(error));
+    help.textContent = message;
+    help.classList.toggle("error", error);
+}
+
+function resetAuthFieldMessages() {
+    const defaults = authFieldDefaults();
+    setAuthFieldState(el.authName, el.authNameHelp, defaults.name);
+    setAuthFieldState(el.authPasscode, el.authPasscodeHelp, defaults.passcode);
+    setAuthFieldState(el.authConfirmPasscode, el.authConfirmHelp, defaults.confirm);
+}
+
+function isValidEmail(value) {
+    return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(value);
+}
+
+function describeAuthFailure(error, registering) {
+    const message = String(error?.message || "").toLowerCase();
+    const code = String(error?.code || "").toLowerCase();
+    if (code.includes("email_address_invalid") || message.includes("invalid email") || message.includes("valid email")) {
+        return { field: "name", message: "邮箱格式不正确，请检查是否包含完整的域名，例如 name@example.com。" };
+    }
+    if (code.includes("weak_password") || message.includes("password should") || message.includes("password must")) {
+        return { field: "passcode", message: "密码强度不足，请至少输入 6 位。" };
+    }
+    if (code.includes("over_email_send_rate_limit") || message.includes("email rate limit") || message.includes("rate limit")) {
+        return { message: "验证邮件发送得太频繁，请等待一分钟后再试。" };
+    }
+    if (message.includes("not authorized") || message.includes("email address is not authorized")) {
+        return { field: "name", message: "当前测试邮件服务暂时无法向这个邮箱发送验证邮件，请更换邮箱或稍后再试。" };
+    }
+    if (message.includes("error sending confirmation") || message.includes("sending confirmation email")) {
+        return { message: "验证邮件暂时发送失败，请稍后重试。" };
+    }
+    if (code.includes("user_already_exists") || message.includes("already registered")) {
+        return { field: "name", message: "这个邮箱已经注册，请切换到登录。" };
+    }
+    if (code.includes("invalid_credentials") || message.includes("invalid login")) {
+        return { field: "passcode", message: "邮箱或密码不正确；如果刚完成注册，请先验证邮箱。" };
+    }
+    if (message.includes("signup") && message.includes("disabled")) {
+        return { message: "当前暂未开放新账号注册。" };
+    }
+    if (message.includes("fetch") || message.includes("network")) {
+        return { message: "网络连接失败，请检查网络后重试。" };
+    }
+    return { message: registering ? "账号没有创建成功，请稍后重试。" : "登录失败，请检查邮箱和密码。" };
+}
+
+function showAuthFailure(error, registering) {
+    const failure = describeAuthFailure(error, registering);
+    const fields = {
+        name: [el.authName, el.authNameHelp],
+        passcode: [el.authPasscode, el.authPasscodeHelp],
+        confirm: [el.authConfirmPasscode, el.authConfirmHelp],
+    };
+    if (failure.field) {
+        const [input, help] = fields[failure.field];
+        setAuthFieldState(input, help, failure.message, true);
+        setAuthMessage(failure.message, true);
+        input.focus();
+        return;
+    }
+    setAuthMessage(failure.message, true);
+}
+
 function setOtpMessage(message = "", error = false) {
     el.authOtpMessage.textContent = message;
     el.authOtpMessage.classList.toggle("error", error);
+    if (error && message) showErrorDialog(message);
 }
 
 function resetOtpInputs() {
@@ -2133,10 +2221,55 @@ function renderCommandResults(query) {
 }
 
 function showToast(message) {
+    if (/(失败|无法|没有响应|未完成|不正确|不允许|暂时不可用|暂时没有保存|暂时没有提交|请选择|请检查|先写下一点|没有同步成功)/.test(message)) {
+        showErrorDialog(message);
+        return;
+    }
     window.clearTimeout(showToast.timer);
     el.toast.textContent = message;
     el.toast.classList.add("show");
     showToast.timer = window.setTimeout(() => el.toast.classList.remove("show"), 2200);
+}
+
+function errorDialogCopy(message) {
+    if (/(邮箱|密码|账号|登录|注册|验证码)/.test(message)) {
+        return { title: "账号信息需要检查", guidance: "关闭提示后检查对应输入框；邮箱需包含完整域名，密码至少 6 位。" };
+    }
+    if (/(网络|云端|同步|连接)/.test(message)) {
+        return { title: "网络连接中断", guidance: "当前内容仍会尽量保存在本机。确认网络恢复后再重新提交。" };
+    }
+    if (/(文件|文档|导入|导出|图片|头像)/.test(message)) {
+        return { title: "文件没有处理完成", guidance: "检查文件格式和大小后重新选择，原有数据不会被覆盖。" };
+    }
+    if (/(AI|分析|洞察|周报)/i.test(message)) {
+        return { title: "AI 暂时没有完成", guidance: "你的原始内容没有丢失。稍后重新分析，或先继续使用已有结果。" };
+    }
+    if (/(保存|提交|删除)/.test(message)) {
+        return { title: "操作没有完成", guidance: "当前数据仍然保留。关闭提示后检查内容并重新提交。" };
+    }
+    return { title: "请检查当前操作", guidance: "关闭提示后修改对应内容，再重新尝试。" };
+}
+
+function showErrorDialog(message) {
+    const now = Date.now();
+    if (!el.errorDialog.hidden && showErrorDialog.lastMessage === message && now - showErrorDialog.lastAt < 1200) return;
+    const copy = errorDialogCopy(message);
+    showErrorDialog.lastMessage = message;
+    showErrorDialog.lastAt = now;
+    showErrorDialog.returnFocus = document.activeElement;
+    el.errorDialogTitle.textContent = copy.title;
+    el.errorDialogMessage.textContent = message;
+    el.errorDialogGuidance.textContent = copy.guidance;
+    el.errorDialog.hidden = false;
+    document.body.classList.add("modal-open");
+    window.setTimeout(() => el.errorDialogClose.focus(), 60);
+}
+
+function closeErrorDialog() {
+    el.errorDialog.hidden = true;
+    const anotherModalOpen = !el.captureModal.hidden || !el.settingsModal.hidden || !el.actionFeedbackModal.hidden || !el.commandPalette.hidden;
+    if (!anotherModalOpen) document.body.classList.remove("modal-open");
+    showErrorDialog.returnFocus?.focus?.();
 }
 
 function showOperationFeedback(message, variant = "success") {
@@ -2319,6 +2452,7 @@ function setAuthMessage(message, error = false) {
     el.authMessage.hidden = false;
     el.authMessage.classList.toggle("error", error);
     el.authMessage.classList.toggle("success", !error);
+    if (error && message) showErrorDialog(message);
 }
 
 el.demoButton.addEventListener("click", () => setActiveUser(DEMO_USER));
@@ -2373,6 +2507,18 @@ async function verifySignupOtp() {
 
 el.authLoginTab.addEventListener("click", () => setAuthMode("login"));
 el.registerButton.addEventListener("click", () => setAuthMode("register"));
+el.authName.addEventListener("input", () => {
+    setAuthFieldState(el.authName, el.authNameHelp, authFieldDefaults().name);
+    clearAuthMessage();
+});
+el.authPasscode.addEventListener("input", () => {
+    setAuthFieldState(el.authPasscode, el.authPasscodeHelp, authFieldDefaults().passcode);
+    clearAuthMessage();
+});
+el.authConfirmPasscode.addEventListener("input", () => {
+    setAuthFieldState(el.authConfirmPasscode, el.authConfirmHelp, authFieldDefaults().confirm);
+    clearAuthMessage();
+});
 el.changeOtpEmail.addEventListener("click", () => {
     const email = state.pendingSignupEmail;
     setAuthMode("register");
@@ -2410,12 +2556,26 @@ el.authForm.addEventListener("submit", async (event) => {
     const passcode = el.authPasscode.value.trim();
     if (state.cloudEnabled) {
         const registering = state.authMode === "register";
-        if (!name.includes("@") || passcode.length < 6) {
-            setAuthMessage("请输入正确邮箱，密码至少 6 位。", true, "请检查输入");
+        resetAuthFieldMessages();
+        clearAuthMessage();
+        if (!isValidEmail(name)) {
+            const message = "邮箱格式不正确，请输入完整地址，例如 name@example.com。";
+            setAuthFieldState(el.authName, el.authNameHelp, message, true);
+            setAuthMessage(message, true);
+            el.authName.focus();
+            return;
+        }
+        if (passcode.length < 6) {
+            const message = "密码长度不足，请至少输入 6 位。";
+            setAuthFieldState(el.authPasscode, el.authPasscodeHelp, message, true);
+            setAuthMessage(message, true);
+            el.authPasscode.focus();
             return;
         }
         if (registering && passcode !== el.authConfirmPasscode.value.trim()) {
-            setAuthMessage("两次输入的密码不一致。", true, "密码没有对上");
+            const message = "两次输入的密码不一致，请重新确认。";
+            setAuthFieldState(el.authConfirmPasscode, el.authConfirmHelp, message, true);
+            setAuthMessage(message, true);
             el.authConfirmPasscode.focus();
             return;
         }
@@ -2450,15 +2610,11 @@ el.authForm.addEventListener("submit", async (event) => {
             const message = String(error.message || "").toLowerCase();
             if (message.includes("email not confirmed")) {
                 showOtpStep(name, "邮箱还没有验证，请输入邮件中的六位验证码，或重新发送。");
-            } else if (message.includes("invalid login")) {
-                setAuthMessage("邮箱或密码不正确。如果刚完成注册，请先完成邮箱验证码验证。", true);
             } else if (message.includes("already registered")) {
                 setAuthMode("login");
                 setAuthMessage("这个邮箱已经注册，请直接登录。", true);
-            } else if (message.includes("fetch") || message.includes("network")) {
-                setAuthMessage("网络连接失败，请检查网络后重试。", true);
             } else {
-                setAuthMessage(registering ? "注册暂时失败，请稍后重试。" : "登录暂时失败，请稍后重试。", true);
+                showAuthFailure(error, registering);
             }
         } finally {
             el.authSubmitButton.disabled = false;
@@ -2636,13 +2792,18 @@ el.commandResults.addEventListener("click", (event) => {
     }
 });
 
+el.errorDialogClose.addEventListener("click", closeErrorDialog);
+el.errorDialogCloseIcon.addEventListener("click", closeErrorDialog);
+el.errorDialog.addEventListener("click", (event) => { if (event.target === el.errorDialog) closeErrorDialog(); });
+
 document.addEventListener("keydown", (event) => {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         openCommandPalette();
     }
     if (event.key === "Escape") {
-        if (!el.commandPalette.hidden) closeCommandPalette();
+        if (!el.errorDialog.hidden) closeErrorDialog();
+        else if (!el.commandPalette.hidden) closeCommandPalette();
         else if (el.detailDrawer.classList.contains("open")) closeDetailDrawer();
         else if (el.actionFeedbackModal && !el.actionFeedbackModal.hidden) closeActionFeedback();
         else if (!el.settingsModal.hidden) closeSettings();
@@ -2704,7 +2865,9 @@ el.settingsAvatarInput.addEventListener("change", async () => {
         el.settingsSaveHint.textContent = "头像已准备好，点击保存后生效";
     } catch (error) {
         el.settingsAvatarInput.value = "";
-        el.settingsSaveHint.textContent = error.message || "头像处理失败";
+        const message = error.message || "头像处理失败，请换一张图片。";
+        el.settingsSaveHint.textContent = message;
+        showErrorDialog(message);
     }
 });
 el.removeAvatar.addEventListener("click", () => {
@@ -2723,6 +2886,8 @@ el.logoutButton.addEventListener("click", async () => {
             await window.ActionCloud.signOut();
         } catch (error) {
             console.error(error);
+            showErrorDialog("云端退出暂时没有完成，请检查网络后再试。");
+            return;
         }
     }
     setActiveUser(null);

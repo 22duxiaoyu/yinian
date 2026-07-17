@@ -68,10 +68,15 @@ test("email OTP and admin analytics contracts are present", async () => {
   ]);
   assert.doesNotMatch(html, /id="authStatus"/);
   assert.match(html, /id="authOtpInputs"/);
+  assert.match(html, /id="errorDialog"/);
   assert.match(app, /verifySignupOtp/);
+  assert.match(app, /showErrorDialog/);
+  assert.match(app, /describeAuthFailure/);
   assert.match(cloud, /auth\.verifyOtp/);
   assert.match(adminHtml, /核心转化漏斗/);
+  assert.match(adminHtml, /id="adminErrorDialog"/);
   assert.match(adminApp, /admin-analytics/);
+  assert.match(adminApp, /showAdminErrorDialog/);
   assert.match(adminFunction, /ADMIN_EMAIL_HASHES/);
   assert.match(adminFunction, /SUPABASE_SERVICE_ROLE_KEY/);
 });

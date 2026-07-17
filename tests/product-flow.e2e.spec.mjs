@@ -84,6 +84,21 @@ test("registration moves into an inline six-digit email verification step", asyn
   await expect(page.getByText("ne••••@example.com")).toBeVisible();
 });
 
+test("registration errors explain the reason in a global dialog and at the field", async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.goto("/");
+  await page.getByRole("tab", { name: "注册" }).click();
+  await page.locator("#authName").fill("not-an-email");
+  await page.locator("#authPasscode").fill("secret88");
+  await page.locator("#authConfirmPasscode").fill("secret88");
+  await page.getByRole("button", { name: "创建账号" }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await expect(page.locator("#errorDialogMessage")).toContainText("邮箱格式不正确");
+  await page.locator("#errorDialogClose").click();
+  await expect(page.locator("#authName")).toHaveAttribute("aria-invalid", "true");
+  await expect(page.locator("#authNameHelp")).toContainText("完整地址");
+});
+
 test("admin dashboard renders aggregated funnel data", async ({ page }) => {
   await page.goto("/admin.html");
   await page.evaluate(() => {
@@ -106,4 +121,16 @@ test("admin dashboard renders aggregated funnel data", async ({ page }) => {
   await expect(page.getByText("累计注册")).toBeVisible();
   await expect(page.getByText("12")).toBeVisible();
   await expect(page.getByText("核心转化漏斗")).toBeVisible();
+});
+
+test("admin login errors use the same visible dialog pattern", async ({ page }) => {
+  await page.goto("/admin.html");
+  await page.evaluate(() => {
+    window.ActionCloud.signIn = async () => { throw new Error("Invalid login credentials"); };
+  });
+  await page.locator("#adminEmail").fill("admin@example.com");
+  await page.locator("#adminPassword").fill("wrong-password");
+  await page.getByRole("button", { name: "登录数据中心" }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await expect(page.locator("#adminErrorDialogMessage")).toContainText("邮箱或密码不正确");
 });

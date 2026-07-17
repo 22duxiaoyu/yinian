@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-23" />
+        <link rel="stylesheet" href="./styles.css?v=action-24" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -64,6 +64,7 @@
             <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></symbol>
             <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" /></symbol>
             <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4 11.5-11.5Z" /></symbol>
+            <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M12 7v6M12 17h.01" /></symbol>
             <symbol id="i-quote" viewBox="0 0 24 24"><path d="M9 11H4a6 6 0 0 1 6-6v3a3 3 0 0 0-3 3v8h2v-8ZM20 11h-5a6 6 0 0 1 6-6v3a3 3 0 0 0-3 3v8h2v-8Z" /></symbol>
             <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></symbol>
         </svg>
@@ -97,18 +98,21 @@
                         <button class="active" id="authLoginTab" data-auth-mode="login" role="tab" aria-selected="true" type="button">登录</button>
                         <button id="registerButton" data-auth-mode="register" role="tab" aria-selected="false" type="button">注册</button>
                     </div>
-                    <form class="auth-form" id="authForm">
-                        <label>
+                    <form class="auth-form" id="authForm" novalidate>
+                        <label class="auth-field">
                             <span id="authNameLabel">用户名</span>
-                            <input id="authName" autocomplete="username" maxlength="32" placeholder="输入用户名" required />
+                            <input id="authName" aria-describedby="authNameHelp" autocomplete="username" maxlength="32" placeholder="输入用户名" required />
+                            <small class="auth-field-help" id="authNameHelp">输入你的空间名称。</small>
                         </label>
-                        <label>
+                        <label class="auth-field">
                             <span id="authPasscodeLabel">访问码</span>
-                            <input id="authPasscode" autocomplete="current-password" minlength="4" placeholder="至少 4 位" required type="password" />
+                            <input id="authPasscode" aria-describedby="authPasscodeHelp" autocomplete="current-password" minlength="4" placeholder="至少 4 位" required type="password" />
+                            <small class="auth-field-help" id="authPasscodeHelp">至少 4 位。</small>
                         </label>
-                        <label id="authConfirmWrap" hidden>
+                        <label class="auth-field" id="authConfirmWrap" hidden>
                             <span>确认密码</span>
-                            <input id="authConfirmPasscode" autocomplete="new-password" minlength="6" placeholder="再次输入密码" type="password" />
+                            <input id="authConfirmPasscode" aria-describedby="authConfirmHelp" autocomplete="new-password" minlength="6" placeholder="再次输入密码" type="password" />
+                            <small class="auth-field-help" id="authConfirmHelp">请再次输入相同密码。</small>
                         </label>
                         <button class="secondary-auth-button" id="authSubmitButton" type="submit">进入空间</button>
                         <p class="auth-inline-message" id="authMessage" role="status" aria-live="polite" hidden></p>
@@ -510,6 +514,17 @@
                 <strong id="operationFeedbackText">已完成</strong>
             </div>
         </div>
+        <div class="modal-backdrop error-modal-backdrop" id="errorDialog" hidden>
+            <section class="error-dialog" role="alertdialog" aria-modal="true" aria-labelledby="errorDialogTitle" aria-describedby="errorDialogMessage">
+                <button class="icon-button error-dialog-close" id="errorDialogCloseIcon" type="button" title="返回修改"><svg><use href="#i-x" /></svg></button>
+                <span class="error-dialog-icon" aria-hidden="true"><svg><use href="#i-alert" /></svg></span>
+                <p class="overline">需要处理</p>
+                <h2 id="errorDialogTitle">操作没有完成</h2>
+                <p id="errorDialogMessage">请检查后重新尝试。</p>
+                <div class="error-dialog-guidance"><strong>建议</strong><span id="errorDialogGuidance">关闭提示后修改对应内容，再重新提交。</span></div>
+                <button class="error-dialog-primary" id="errorDialogClose" type="button">返回修改</button>
+            </section>
+        </div>
         <div class="analysis-overlay" id="analysisOverlay" aria-hidden="true">
             <div class="analysis-overlay-card" role="status" aria-live="polite">
                 <div class="analysis-core" aria-hidden="true"><span></span><svg><use href="#i-spark" /></svg></div>
@@ -523,6 +538,6 @@
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
         <script src="./cloud-config.js?v=1"></script>
         <script src="./cloud.js?v=4"></script>
-        <script src="./app.js?v=25"></script>
+        <script src="./app.js?v=26"></script>
     </body>
 </html>

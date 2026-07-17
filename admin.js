@@ -21,6 +21,10 @@ const adminEl = {
     outcomes: document.querySelector("#outcomeDistribution"),
     users: document.querySelector("#userTable"),
     feedback: document.querySelector("#feedbackList"),
+    errorDialog: document.querySelector("#adminErrorDialog"),
+    errorDialogTitle: document.querySelector("#adminErrorDialogTitle"),
+    errorDialogMessage: document.querySelector("#adminErrorDialogMessage"),
+    errorDialogClose: document.querySelector("#adminErrorDialogClose"),
 };
 
 const pageLabels = { overview: "工作台", library: "灵感库", insights: "洞察", actions: "行动", weekly: "周报", method: "产品方法" };
@@ -58,6 +62,26 @@ function showError(message) {
     adminEl.error.hidden = false;
     adminEl.error.querySelector("p").textContent = message;
     adminEl.refresh.disabled = false;
+    showAdminErrorDialog(message);
+}
+
+function adminErrorMessage(error, context = "data") {
+    const message = String(error?.message || "").toLowerCase();
+    if (message.includes("invalid login") || message.includes("invalid credentials")) return "管理员邮箱或密码不正确。";
+    if (message.includes("forbidden") || message.includes("unauthorized") || message.includes("permission") || message.includes("403")) return "当前账号没有管理员权限，请使用指定管理员邮箱登录。";
+    if (message.includes("fetch") || message.includes("network")) return "网络连接失败，请检查网络后重试。";
+    return context === "login" ? "登录失败，请检查账号信息后重试。" : "暂时无法读取后台数据，请稍后重试。";
+}
+
+function showAdminErrorDialog(message) {
+    adminEl.errorDialogTitle.textContent = /(登录|邮箱|密码|账号)/.test(message) ? "管理员身份需要检查" : "后台操作没有完成";
+    adminEl.errorDialogMessage.textContent = message;
+    adminEl.errorDialog.hidden = false;
+    window.setTimeout(() => adminEl.errorDialogClose.focus(), 40);
+}
+
+function closeAdminErrorDialog() {
+    adminEl.errorDialog.hidden = true;
 }
 
 function renderOverview(data) {
@@ -141,7 +165,7 @@ async function loadDashboard() {
         adminEl.loading.hidden = true;
     } catch (error) {
         console.error(error);
-        showError("请确认当前账号拥有管理员权限，并检查网络后重试。");
+        showError(adminErrorMessage(error));
     } finally {
         adminEl.refresh.disabled = false;
     }
@@ -157,7 +181,9 @@ adminEl.loginForm.addEventListener("submit", async (event) => {
         await loadDashboard();
     } catch (error) {
         console.error(error);
-        adminEl.loginMessage.textContent = "登录失败，或当前账号没有管理员权限。";
+        const message = adminErrorMessage(error, "login");
+        adminEl.loginMessage.textContent = message;
+        showAdminErrorDialog(message);
     } finally {
         adminEl.loginForm.querySelector("button").disabled = false;
     }
@@ -166,6 +192,9 @@ adminEl.loginForm.addEventListener("submit", async (event) => {
 adminEl.period.addEventListener("change", loadDashboard);
 adminEl.refresh.addEventListener("click", loadDashboard);
 adminEl.error.querySelector("button").addEventListener("click", loadDashboard);
+adminEl.errorDialogClose.addEventListener("click", closeAdminErrorDialog);
+adminEl.errorDialog.addEventListener("click", (event) => { if (event.target === adminEl.errorDialog) closeAdminErrorDialog(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !adminEl.errorDialog.hidden) closeAdminErrorDialog(); });
 adminEl.logout.addEventListener("click", async () => {
     await window.ActionCloud.signOut().catch(() => {});
     adminEl.app.hidden = true;
@@ -181,12 +210,16 @@ document.querySelectorAll("[data-admin-target]").forEach((button) => button.addE
     try {
         const cloud = await window.ActionCloud.init();
         if (!cloud.configured) {
-            adminEl.loginMessage.textContent = "云端尚未配置，无法进入数据中心。";
+            const message = "云端尚未配置，无法进入数据中心。";
+            adminEl.loginMessage.textContent = message;
+            showAdminErrorDialog(message);
             return;
         }
         if (cloud.session?.user) await loadDashboard();
     } catch (error) {
         console.error(error);
-        adminEl.loginMessage.textContent = "暂时无法连接 Action 云端。";
+        const message = adminErrorMessage(error);
+        adminEl.loginMessage.textContent = message;
+        showAdminErrorDialog(message);
     }
 })();
