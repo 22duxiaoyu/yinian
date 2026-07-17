@@ -624,30 +624,29 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
     color: #1f2932;
     box-shadow: 0 4px 12px rgba(29,34,40,.08), inset 0 1px #fff;
 }
-.auth-status {
-    min-height: 58px;
-    margin-bottom: 14px;
-    border: 1px solid rgba(92,112,135,.12);
-    border-radius: 12px;
-    background: rgba(92,112,135,.07);
-    display: grid;
-    grid-template-columns: 30px minmax(0,1fr) auto;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-}
-.auth-status[hidden] { display: none; }
-.auth-status-icon { width: 30px; height: 30px; border-radius: 9px; background: rgba(92,112,135,.12); color: #5c7087; display: grid; place-items: center; }
-.auth-status-icon svg { width: 15px; height: 15px; }
-.auth-status strong { display: block; color: #35424e; font-size: 11px; }
-.auth-status .auth-message { min-height: 0; margin: 3px 0 0; color: #74808b; font-size: 10px; line-height: 1.45; }
-.auth-status.error { border-color: rgba(190,74,88,.2); background: rgba(190,74,88,.08); }
-.auth-status.error .auth-status-icon { background: rgba(190,74,88,.12); color: #aa4653; }
-.auth-status.error strong, .auth-status.error .auth-message { color: #a34a56; }
-.auth-status button { border: 0; border-radius: 9px; background: #35424e; color: #fff; padding: 8px 10px; font-size: 9px; font-weight: 750; }
 .auth-form label[hidden] { display: none; }
 .auth-form.register-mode { grid-template-columns: 1fr; }
 .auth-form.register-mode .secondary-auth-button { background: #2d3944; color: #fff; box-shadow: 0 10px 24px rgba(45,57,68,.15); }
+.auth-inline-message { grid-column: 1 / -1; min-height: 18px; margin: 0; color: #4a8460; font-size: 11px; line-height: 1.5; }
+.auth-inline-message[hidden] { display: none; }
+.auth-inline-message.error { color: #b14f5c; }
+.auth-otp-panel { display: grid; gap: 14px; margin-top: 22px; animation: authOtpIn 260ms var(--ease) both; }
+.auth-otp-panel[hidden] { display: none; }
+.auth-otp-panel .overline { margin: 0; color: #7a6432; }
+.auth-otp-panel h2 { margin: 0; color: #172129; font-size: 28px; }
+.auth-otp-panel > p:not(.overline):not(.auth-otp-message) { margin: -6px 0 2px; color: #6f7a84; font-size: 12px; }
+.auth-otp-panel > p strong { color: #33414d; }
+.auth-otp-back { justify-self: start; border: 0; background: transparent; color: #5f6f7c; padding: 0; font-size: 11px; font-weight: 700; }
+.auth-otp-inputs { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; }
+.auth-otp-inputs input { width: 100%; aspect-ratio: 1; min-width: 0; border: 1px solid rgba(70,84,96,.14); border-radius: 10px; background: rgba(255,255,255,.62); color: #172129; text-align: center; font-size: 24px; font-weight: 760; box-shadow: inset 0 1px rgba(255,255,255,.8); }
+.auth-otp-inputs input:focus { border-color: rgba(83,112,137,.55); background: rgba(255,255,255,.9); }
+.auth-otp-message { min-height: 18px; margin: -4px 0 0; color: #4a8460; font-size: 11px; }
+.auth-otp-message.error { color: #b14f5c; }
+.auth-otp-fallback { margin: -4px 0 2px; color: #7a8791; font-size: 11px; line-height: 1.55; }
+.auth-otp-panel .secondary-auth-button { width: 100%; background: #2d3944; color: #fff; box-shadow: 0 10px 24px rgba(45,57,68,.15); }
+.auth-otp-resend { justify-self: center; border: 0; background: transparent; color: #506679; font-size: 11px; font-weight: 700; }
+.auth-otp-resend:disabled { color: #98a2aa; }
+@keyframes authOtpIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .auth-success {
     position: absolute;
     z-index: 5;

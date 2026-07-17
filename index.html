@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-22" />
+        <link rel="stylesheet" href="./styles.css?v=action-23" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -97,11 +97,6 @@
                         <button class="active" id="authLoginTab" data-auth-mode="login" role="tab" aria-selected="true" type="button">登录</button>
                         <button id="registerButton" data-auth-mode="register" role="tab" aria-selected="false" type="button">注册</button>
                     </div>
-                    <div class="auth-status" id="authStatus" role="status" aria-live="polite">
-                        <span class="auth-status-icon"><svg><use href="#i-spark" /></svg></span>
-                        <div><strong id="authStatusTitle">本地空间</strong><p class="auth-message" id="authMessage">首次登录会在本机创建独立空间，数据不会上传。</p></div>
-                        <button id="resendVerification" type="button" hidden>重新发送</button>
-                    </div>
                     <form class="auth-form" id="authForm">
                         <label>
                             <span id="authNameLabel">用户名</span>
@@ -116,7 +111,26 @@
                             <input id="authConfirmPasscode" autocomplete="new-password" minlength="6" placeholder="再次输入密码" type="password" />
                         </label>
                         <button class="secondary-auth-button" id="authSubmitButton" type="submit">进入空间</button>
+                        <p class="auth-inline-message" id="authMessage" role="status" aria-live="polite" hidden></p>
                     </form>
+                    <section class="auth-otp-panel" id="authOtpPanel" aria-labelledby="authOtpTitle" hidden>
+                        <button class="auth-otp-back" id="changeOtpEmail" type="button">更换邮箱</button>
+                        <p class="overline">邮箱验证</p>
+                        <h2 id="authOtpTitle">输入六位验证码</h2>
+                        <p>验证码已发送至 <strong id="authOtpEmail"></strong></p>
+                        <div class="auth-otp-inputs" id="authOtpInputs" aria-label="六位邮箱验证码">
+                            <input aria-label="验证码第 1 位" autocomplete="one-time-code" inputmode="numeric" maxlength="1" />
+                            <input aria-label="验证码第 2 位" inputmode="numeric" maxlength="1" />
+                            <input aria-label="验证码第 3 位" inputmode="numeric" maxlength="1" />
+                            <input aria-label="验证码第 4 位" inputmode="numeric" maxlength="1" />
+                            <input aria-label="验证码第 5 位" inputmode="numeric" maxlength="1" />
+                            <input aria-label="验证码第 6 位" inputmode="numeric" maxlength="1" />
+                        </div>
+                        <p class="auth-otp-message" id="authOtpMessage" role="status" aria-live="polite"></p>
+                        <p class="auth-otp-fallback">如果邮件中显示的是确认按钮，直接点击也可以完成注册。</p>
+                        <button class="secondary-auth-button" id="verifyOtpButton" type="button">验证并进入</button>
+                        <button class="auth-otp-resend" id="resendOtpButton" type="button" disabled>重新发送 <span id="resendOtpCountdown">60 秒</span></button>
+                    </section>
                     <div class="auth-divider"><span id="authDividerText">或者</span></div>
                     <button class="demo-button" id="demoButton" type="button">
                         <span>体验完整示例</span>
@@ -129,10 +143,6 @@
                         <h2 id="authSuccessTitle">注册成功</h2>
                         <p id="authSuccessCopy">账号已经创建。</p>
                         <strong id="authSuccessEmail"></strong>
-                        <div class="auth-success-actions">
-                            <button id="authSuccessLogin" type="button">返回登录</button>
-                            <button id="authSuccessResend" type="button">重新发送验证邮件</button>
-                        </div>
                     </section>
                 </div>
             </div>
@@ -512,7 +522,7 @@
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
         <script src="./cloud-config.js?v=1"></script>
-        <script src="./cloud.js?v=3"></script>
-        <script src="./app.js?v=24"></script>
+        <script src="./cloud.js?v=4"></script>
+        <script src="./app.js?v=25"></script>
     </body>
 </html>

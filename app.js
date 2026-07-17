@@ -34,6 +34,8 @@ const state = {
     cloudUnsubscribe: null,
     localMigrationCandidate: null,
     authMode: "login",
+    pendingSignupEmail: "",
+    otpCooldownUntil: 0,
     view: "overview",
     filter: "all",
     query: "",
@@ -66,15 +68,18 @@ const el = {
     authModeSwitch: document.querySelector("#authModeSwitch"),
     authConfirmWrap: document.querySelector("#authConfirmWrap"),
     authConfirmPasscode: document.querySelector("#authConfirmPasscode"),
-    authStatus: document.querySelector("#authStatus"),
-    authStatusTitle: document.querySelector("#authStatusTitle"),
-    resendVerification: document.querySelector("#resendVerification"),
+    authOtpPanel: document.querySelector("#authOtpPanel"),
+    authOtpEmail: document.querySelector("#authOtpEmail"),
+    authOtpInputs: document.querySelector("#authOtpInputs"),
+    authOtpMessage: document.querySelector("#authOtpMessage"),
+    verifyOtpButton: document.querySelector("#verifyOtpButton"),
+    resendOtpButton: document.querySelector("#resendOtpButton"),
+    resendOtpCountdown: document.querySelector("#resendOtpCountdown"),
+    changeOtpEmail: document.querySelector("#changeOtpEmail"),
     authSuccess: document.querySelector("#authSuccess"),
     authSuccessTitle: document.querySelector("#authSuccessTitle"),
     authSuccessCopy: document.querySelector("#authSuccessCopy"),
     authSuccessEmail: document.querySelector("#authSuccessEmail"),
-    authSuccessLogin: document.querySelector("#authSuccessLogin"),
-    authSuccessResend: document.querySelector("#authSuccessResend"),
     demoButton: document.querySelector("#demoButton"),
     spaceName: document.querySelector("#spaceName"),
     activeUserName: document.querySelector("#activeUserName"),
@@ -1122,6 +1127,7 @@ function configureCloudUi() {
 }
 
 function setAuthMode(mode) {
+    hideOtpStep();
     state.authMode = mode === "register" ? "register" : "login";
     const registering = state.authMode === "register";
     el.authLoginTab?.classList.toggle("active", !registering);
@@ -1133,22 +1139,13 @@ function setAuthMode(mode) {
     el.authForm.classList.toggle("register-mode", registering);
     el.authSubmitButton.textContent = registering ? "创建账号" : "登录";
     el.authPasscode.autocomplete = registering ? "new-password" : "current-password";
-    el.resendVerification.hidden = true;
-    setAuthMessage(
-        registering ? "注册后需要验证邮箱，点击邮件链接会自动进入 Action。" : "使用已注册的邮箱和密码登录。",
-        false,
-        registering ? "创建云端账号" : "登录云端空间",
-    );
+    clearAuthMessage();
 }
 
-function showAuthSuccess(email, autoEntering = false) {
+function showAuthSuccess(email) {
     el.authSuccessTitle.textContent = "注册成功";
-    el.authSuccessCopy.textContent = autoEntering
-        ? "账号已经创建，正在进入你的云端空间。"
-        : "验证邮件已经发送。请点击邮件里的验证链接，验证后会自动进入 Action，不需要再次登录。";
+    el.authSuccessCopy.textContent = "邮箱验证已经完成，正在进入你的云端空间。";
     el.authSuccessEmail.textContent = email;
-    el.authSuccessLogin.hidden = autoEntering;
-    el.authSuccessResend.hidden = autoEntering;
     el.authSuccess.hidden = false;
     el.authSuccess.setAttribute("aria-hidden", "false");
 }
@@ -1156,6 +1153,58 @@ function showAuthSuccess(email, autoEntering = false) {
 function hideAuthSuccess() {
     el.authSuccess.hidden = true;
     el.authSuccess.setAttribute("aria-hidden", "true");
+}
+
+function clearAuthMessage() {
+    el.authMessage.textContent = "";
+    el.authMessage.hidden = true;
+    el.authMessage.classList.remove("error", "success");
+}
+
+function setOtpMessage(message = "", error = false) {
+    el.authOtpMessage.textContent = message;
+    el.authOtpMessage.classList.toggle("error", error);
+}
+
+function resetOtpInputs() {
+    [...el.authOtpInputs.querySelectorAll("input")].forEach((input) => { input.value = ""; });
+}
+
+function updateOtpCooldown() {
+    const seconds = Math.max(0, Math.ceil((state.otpCooldownUntil - Date.now()) / 1000));
+    el.resendOtpButton.disabled = seconds > 0;
+    el.resendOtpCountdown.textContent = seconds > 0 ? `${seconds} 秒` : "";
+    if (!seconds) window.clearInterval(updateOtpCooldown.timer);
+}
+
+function startOtpCooldown(seconds = 60) {
+    window.clearInterval(updateOtpCooldown.timer);
+    state.otpCooldownUntil = Date.now() + seconds * 1000;
+    updateOtpCooldown();
+    updateOtpCooldown.timer = window.setInterval(updateOtpCooldown, 1000);
+}
+
+function showOtpStep(email, message = "请输入邮件中的六位验证码。") {
+    state.pendingSignupEmail = email;
+    clearAuthMessage();
+    el.authOtpEmail.textContent = email.replace(/^(.{2}).*(@.*)$/, "$1••••$2");
+    el.authForm.hidden = true;
+    el.authModeSwitch.hidden = true;
+    el.authOtpPanel.hidden = false;
+    el.authScreen.classList.add("otp-active");
+    resetOtpInputs();
+    setOtpMessage(message);
+    startOtpCooldown();
+    window.setTimeout(() => el.authOtpInputs.querySelector("input")?.focus(), 80);
+}
+
+function hideOtpStep() {
+    window.clearInterval(updateOtpCooldown.timer);
+    el.authOtpPanel.hidden = true;
+    el.authForm.hidden = false;
+    el.authModeSwitch.hidden = !state.cloudEnabled;
+    el.authScreen.classList.remove("otp-active");
+    setOtpMessage();
 }
 
 function renderNavigation() {
@@ -2115,6 +2164,7 @@ async function runAnalysis() {
     if (state.analyzing) return;
     state.analyzing = true;
     const sourceCount = activeSources().length;
+    const analysisStartedAt = performance.now();
     trackEvent("insight_analysis_started", { source_count: sourceCount });
     const cloudAnalysis = state.user?.cloud
         ? window.ActionCloud.invoke("analyze-insights")
@@ -2183,10 +2233,10 @@ async function runAnalysis() {
     });
     state.analyzing = false;
     if (cloudResult.ok) {
-        trackEvent("insight_analysis_completed", { insight_count: buildInsights().filter((item) => item.status !== "empty").length, source_count: sourceCount });
+        trackEvent("insight_analysis_completed", { insight_count: buildInsights().filter((item) => item.status !== "empty").length, source_count: sourceCount, duration_ms: Math.round(performance.now() - analysisStartedAt) });
         showToast(`分析完成：已更新 ${buildInsights().length} 条洞察和动态周报`);
     } else {
-        trackEvent("insight_analysis_failed", { source_count: sourceCount });
+        trackEvent("insight_analysis_failed", { source_count: sourceCount, duration_ms: Math.round(performance.now() - analysisStartedAt) });
         console.error("Action cloud analysis failed", cloudResult.error);
         showToast("云端 AI 暂时不可用，已继续显示本地洞察");
     }
@@ -2264,51 +2314,94 @@ async function deleteNote(id) {
     showToast("输入已删除，相关洞察已重新计算");
 }
 
-function setAuthMessage(message, error = false, title = error ? "操作未完成" : "账号提示") {
-    el.authStatus.hidden = false;
-    el.authStatusTitle.textContent = title;
+function setAuthMessage(message, error = false) {
     el.authMessage.textContent = message;
+    el.authMessage.hidden = false;
     el.authMessage.classList.toggle("error", error);
-    el.authStatus.classList.toggle("error", error);
+    el.authMessage.classList.toggle("success", !error);
 }
 
 el.demoButton.addEventListener("click", () => setActiveUser(DEMO_USER));
 
-async function resendVerificationEmail() {
-    const email = (el.authSuccessEmail.textContent || el.authName.value).trim();
+async function resendSignupOtp() {
+    const email = (state.pendingSignupEmail || el.authName.value).trim();
     if (!email.includes("@")) {
-        setAuthMessage("请先填写注册邮箱。", true, "缺少邮箱");
+        setOtpMessage("请先填写正确的注册邮箱。", true);
         return;
     }
-    el.resendVerification.disabled = true;
-    el.authSuccessResend.disabled = true;
+    el.resendOtpButton.disabled = true;
     try {
         await window.ActionCloud.resendSignup(email);
-        if (!el.authSuccess.hidden) {
-            el.authSuccessCopy.textContent = "新的验证邮件已发送。点击邮件里的验证链接后会自动进入 Action。";
-        } else {
-            setAuthMessage("新的验证邮件已发送，请检查收件箱和垃圾邮件。", false, "验证邮件已重发");
-        }
+        setOtpMessage("新的验证码已经发送，请检查收件箱和垃圾邮件。");
+        startOtpCooldown();
     } catch (error) {
         console.error(error);
-        setAuthMessage("暂时无法重新发送，请一分钟后再试。", true, "发送失败");
+        setOtpMessage("暂时无法重新发送，请一分钟后再试。", true);
+        el.resendOtpButton.disabled = false;
+    }
+}
+
+async function verifySignupOtp() {
+    const token = [...el.authOtpInputs.querySelectorAll("input")].map((input) => input.value).join("");
+    if (!/^\d{6}$/.test(token)) {
+        setOtpMessage("请输入完整的六位验证码。", true);
+        [...el.authOtpInputs.querySelectorAll("input")].find((input) => !input.value)?.focus();
+        return;
+    }
+    el.verifyOtpButton.disabled = true;
+    el.verifyOtpButton.textContent = "正在验证";
+    try {
+        const { user } = await window.ActionCloud.verifySignupOtp(state.pendingSignupEmail, token);
+        showAuthSuccess(state.pendingSignupEmail);
+        await delay(1050);
+        await activateCloudUser(user);
+        trackEvent("auth_completed", { mode: "register", provider: "email_otp" });
+        hideAuthSuccess();
+        hideOtpStep();
+        el.authForm.reset();
+    } catch (error) {
+        console.error(error);
+        const message = String(error.message || "").toLowerCase();
+        setOtpMessage(message.includes("expired") ? "验证码已经过期，请重新发送。" : "验证码不正确，请检查后重新输入。", true);
+        resetOtpInputs();
+        el.authOtpInputs.querySelector("input")?.focus();
     } finally {
-        el.resendVerification.disabled = false;
-        el.authSuccessResend.disabled = false;
+        el.verifyOtpButton.disabled = false;
+        el.verifyOtpButton.textContent = "验证并进入";
     }
 }
 
 el.authLoginTab.addEventListener("click", () => setAuthMode("login"));
 el.registerButton.addEventListener("click", () => setAuthMode("register"));
-el.resendVerification.addEventListener("click", resendVerificationEmail);
-el.authSuccessResend.addEventListener("click", resendVerificationEmail);
-el.authSuccessLogin.addEventListener("click", () => {
-    const email = el.authSuccessEmail.textContent;
-    hideAuthSuccess();
-    setAuthMode("login");
+el.changeOtpEmail.addEventListener("click", () => {
+    const email = state.pendingSignupEmail;
+    setAuthMode("register");
     el.authName.value = email;
-    el.authPasscode.value = "";
-    el.authPasscode.focus();
+    el.authName.focus();
+});
+el.resendOtpButton.addEventListener("click", resendSignupOtp);
+el.verifyOtpButton.addEventListener("click", verifySignupOtp);
+el.authOtpInputs.addEventListener("input", (event) => {
+    const input = event.target.closest("input");
+    if (!input) return;
+    input.value = input.value.replace(/\D/g, "").slice(-1);
+    if (input.value) input.nextElementSibling?.focus();
+    setOtpMessage();
+});
+el.authOtpInputs.addEventListener("keydown", (event) => {
+    const input = event.target.closest("input");
+    if (!input) return;
+    if (event.key === "Backspace" && !input.value) input.previousElementSibling?.focus();
+    if (event.key === "Enter") verifySignupOtp();
+});
+el.authOtpInputs.addEventListener("paste", (event) => {
+    const digits = event.clipboardData?.getData("text").replace(/\D/g, "").slice(0, 6) || "";
+    if (!digits) return;
+    event.preventDefault();
+    const inputs = [...el.authOtpInputs.querySelectorAll("input")];
+    inputs.forEach((input, index) => { input.value = digits[index] || ""; });
+    inputs[Math.min(digits.length, 6) - 1]?.focus();
+    if (digits.length === 6) verifySignupOtp();
 });
 
 el.authForm.addEventListener("submit", async (event) => {
@@ -2335,18 +2428,16 @@ el.authForm.addEventListener("submit", async (event) => {
                 if (alreadyRegistered) {
                     setAuthMode("login");
                     el.authName.value = name;
-                    el.resendVerification.hidden = false;
-                    setAuthMessage("这个邮箱已经注册。如果还没验证邮箱，可以重新发送验证邮件。", true, "账号已经存在");
+                    setAuthMessage("这个邮箱可能已经注册，请直接登录；如果还没完成验证，可以再次注册获取新验证码。", true);
                 } else if (data.session && data.user) {
-                    showAuthSuccess(name, true);
+                    showAuthSuccess(name);
                     await delay(1100);
                     await activateCloudUser(data.user);
                     trackEvent("auth_completed", { mode: "register", provider: "email" });
                     hideAuthSuccess();
                     el.authForm.reset();
                 } else {
-                    showAuthSuccess(name, false);
-                    el.authForm.reset();
+                    showOtpStep(name);
                 }
             } else {
                 const { user } = await window.ActionCloud.signIn(name, passcode);
@@ -2358,16 +2449,14 @@ el.authForm.addEventListener("submit", async (event) => {
             console.error(error);
             const message = String(error.message || "").toLowerCase();
             if (message.includes("email not confirmed")) {
-                setAuthMode("login");
-                el.resendVerification.hidden = false;
-                setAuthMessage("账号已创建，但邮箱还没有验证。请先点击验证邮件里的链接；验证后会自动进入。", true, "邮箱尚未验证");
+                showOtpStep(name, "邮箱还没有验证，请输入邮件中的六位验证码，或重新发送。");
             } else if (message.includes("invalid login")) {
-                setAuthMessage("邮箱或密码不正确。如果刚完成注册，请先确认邮箱已经验证。", true, "登录信息不正确");
+                setAuthMessage("邮箱或密码不正确。如果刚完成注册，请先完成邮箱验证码验证。", true);
             } else if (message.includes("already registered")) {
                 setAuthMode("login");
-                setAuthMessage("这个邮箱已经注册，请直接登录。", true, "账号已经存在");
+                setAuthMessage("这个邮箱已经注册，请直接登录。", true);
             } else if (message.includes("fetch") || message.includes("network")) {
-                setAuthMessage("网络连接失败，请检查网络后重试。", true, "无法连接云端");
+                setAuthMessage("网络连接失败，请检查网络后重试。", true);
             } else {
                 setAuthMessage(registering ? "注册暂时失败，请稍后重试。" : "登录暂时失败，请稍后重试。", true);
             }

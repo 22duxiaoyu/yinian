@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow" />
+    <title>Action 数据中心</title>
+    <link rel="stylesheet" href="./admin.css?v=1" />
+</head>
+<body>
+    <svg class="icon-sprite" aria-hidden="true">
+        <symbol id="a-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+        <symbol id="a-funnel" viewBox="0 0 24 24"><path d="M3 4h18l-7 8v6l-4 2v-8L3 4Z"/></symbol>
+        <symbol id="a-pulse" viewBox="0 0 24 24"><path d="M3 12h4l2-7 4 14 2-7h6"/></symbol>
+        <symbol id="a-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+        <symbol id="a-message" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></symbol>
+        <symbol id="a-refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6 6.5L4 11M5.5 15A7 7 0 0 0 18 17.5l2-4.5"/></symbol>
+        <symbol id="a-exit" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-6"/></symbol>
+    </svg>
+
+    <section class="admin-auth" id="adminAuth">
+        <div class="admin-auth-panel">
+            <a href="./" class="admin-brand"><span>Ａ</span><strong>Action</strong></a>
+            <p class="eyebrow">PRIVATE ANALYTICS</p>
+            <h1>数据中心</h1>
+            <p>仅管理员可以查看聚合指标。后台不会展示用户的灵感正文。</p>
+            <form id="adminLoginForm">
+                <label><span>管理员邮箱</span><input id="adminEmail" type="email" autocomplete="username" required /></label>
+                <label><span>密码</span><input id="adminPassword" type="password" autocomplete="current-password" required /></label>
+                <button type="submit">登录数据中心</button>
+                <p id="adminLoginMessage" role="status" aria-live="polite"></p>
+            </form>
+            <a href="./">返回 Action</a>
+        </div>
+    </section>
+
+    <div class="admin-shell" id="adminApp" hidden>
+        <aside class="admin-sidebar">
+            <a href="./" class="admin-brand"><span>Ａ</span><strong>Action</strong><small>数据中心</small></a>
+            <nav aria-label="管理后台导航">
+                <button class="active" data-admin-target="overview" type="button"><svg><use href="#a-grid"/></svg>总览</button>
+                <button data-admin-target="funnel" type="button"><svg><use href="#a-funnel"/></svg>转化漏斗</button>
+                <button data-admin-target="usage" type="button"><svg><use href="#a-pulse"/></svg>功能使用</button>
+                <button data-admin-target="quality" type="button"><svg><use href="#a-pulse"/></svg>AI 质量</button>
+                <button data-admin-target="users" type="button"><svg><use href="#a-users"/></svg>用户激活</button>
+                <button data-admin-target="feedback" type="button"><svg><use href="#a-message"/></svg>用户反馈</button>
+            </nav>
+            <div class="admin-sidebar-foot"><span>只读聚合视图</span><button id="adminLogout" type="button"><svg><use href="#a-exit"/></svg>退出</button></div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div><p class="eyebrow">ACTION ANALYTICS</p><h1>产品运行概览</h1><span id="adminUpdatedAt">等待数据</span></div>
+                <div class="admin-controls">
+                    <label><span>统计周期</span><select id="adminPeriod"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option></select></label>
+                    <button id="adminRefresh" type="button" title="刷新数据"><svg><use href="#a-refresh"/></svg><span>刷新</span></button>
+                </div>
+            </header>
+
+            <div class="admin-loading" id="adminLoading" hidden><span></span><p>正在汇总产品数据</p></div>
+            <div class="admin-error" id="adminError" hidden><strong>暂时无法读取后台数据</strong><p></p><button type="button">重新加载</button></div>
+
+            <div id="adminContent">
+                <section class="admin-section" id="overview">
+                    <div class="section-heading"><div><p class="eyebrow">OVERVIEW</p><h2>核心指标</h2></div><p>先看规模、活跃和价值行为，不用总点击量制造繁荣。</p></div>
+                    <div class="metric-grid" id="overviewMetrics"></div>
+                    <div class="trend-panel"><div class="panel-heading"><div><span>每日变化</span><strong>新增用户与活跃用户</strong></div><div class="trend-legend"><i></i>活跃用户<b></b>新增用户</div></div><div class="trend-chart" id="dailyTrend"></div></div>
+                </section>
+
+                <section class="admin-section" id="funnel">
+                    <div class="section-heading"><div><p class="eyebrow">CORE FUNNEL</p><h2>核心转化漏斗</h2></div><p>每一级统计完成该关键行为的去重用户数。</p></div>
+                    <div class="funnel-list" id="funnelList"></div>
+                </section>
+
+                <section class="admin-section" id="usage">
+                    <div class="section-heading"><div><p class="eyebrow">USAGE</p><h2>功能使用</h2></div><p>区分事件次数和真实使用人数。</p></div>
+                    <div class="split-panels"><div class="data-panel"><div class="panel-heading"><strong>关键功能</strong><span>人数／次数</span></div><div id="featureUsage"></div></div><div class="data-panel"><div class="panel-heading"><strong>页面访问</strong><span>人数／次数</span></div><div id="pageUsage"></div></div></div>
+                </section>
+
+                <section class="admin-section" id="quality">
+                    <div class="section-heading"><div><p class="eyebrow">AI QUALITY</p><h2>AI 质量与反馈闭环</h2></div><p>关注成功、信任和现实结果，而不只统计调用量。</p></div>
+                    <div class="quality-grid" id="qualityMetrics"></div>
+                    <div class="outcome-panel"><div class="panel-heading"><strong>行动结果分布</strong><span>结果是否支持原洞察</span></div><div id="outcomeDistribution"></div></div>
+                </section>
+
+                <section class="admin-section" id="users">
+                    <div class="section-heading"><div><p class="eyebrow">ACTIVATION</p><h2>用户激活进度</h2></div><p>邮箱经过脱敏，仅用于判断用户停在哪一步。</p></div>
+                    <div class="table-wrap"><table><thead><tr><th>用户</th><th>注册时间</th><th>最近活跃</th><th>最深行为</th><th>事件数</th></tr></thead><tbody id="userTable"></tbody></table></div>
+                </section>
+
+                <section class="admin-section" id="feedback">
+                    <div class="section-heading"><div><p class="eyebrow">FEEDBACK</p><h2>用户反馈</h2></div><p>反馈独立保存，不会进入用户的 AI 洞察语料。</p></div>
+                    <div class="feedback-list" id="feedbackList"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="./cloud-config.js?v=1"></script>
+    <script src="./cloud.js?v=4"></script>
+    <script src="./admin.js?v=1"></script>
+</body>
+</html>

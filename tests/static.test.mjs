@@ -56,3 +56,22 @@ test("browser assets do not contain private service credentials", async () => {
   assert.doesNotMatch(browserBundle, /SUPABASE_SERVICE_ROLE_KEY|DEEPSEEK_API_KEY/);
   assert.doesNotMatch(browserBundle, /(?:sk|ds)-[A-Za-z0-9_-]{20,}/);
 });
+
+test("email OTP and admin analytics contracts are present", async () => {
+  const [html, app, cloud, adminHtml, adminApp, adminFunction] = await Promise.all([
+    read("index.html"),
+    read("app.js"),
+    read("cloud.js"),
+    read("admin.html"),
+    read("admin.js"),
+    read("supabase/functions/admin-analytics/index.ts"),
+  ]);
+  assert.doesNotMatch(html, /id="authStatus"/);
+  assert.match(html, /id="authOtpInputs"/);
+  assert.match(app, /verifySignupOtp/);
+  assert.match(cloud, /auth\.verifyOtp/);
+  assert.match(adminHtml, /核心转化漏斗/);
+  assert.match(adminApp, /admin-analytics/);
+  assert.match(adminFunction, /ADMIN_EMAIL_HASHES/);
+  assert.match(adminFunction, /SUPABASE_SERVICE_ROLE_KEY/);
+});

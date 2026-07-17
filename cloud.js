@@ -139,6 +139,13 @@
         return data;
     }
 
+    async function verifySignupOtp(email, token) {
+        const { data, error } = await requireClient().auth.verifyOtp({ email, token, type: "email" });
+        if (error) throw error;
+        if (!data.user || !data.session) throw new Error("验证码验证后没有建立会话");
+        return data;
+    }
+
     async function signOut() {
         const { error } = await requireClient().auth.signOut();
         if (error) throw error;
@@ -396,6 +403,7 @@
         signIn,
         signUp,
         resendSignup,
+        verifySignupOtp,
         signOut,
         loadWorkspace,
         syncNotes,

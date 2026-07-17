@@ -66,3 +66,44 @@ test("main workspace has no horizontal page overflow", async ({ page }) => {
   const dimensions = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
   expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.width + 1);
 });
+
+test("registration moves into an inline six-digit email verification step", async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.goto("/");
+  await expect(page.locator("#authStatus")).toHaveCount(0);
+  await page.getByRole("tab", { name: "注册" }).click();
+  await page.locator("#authName").fill("new-user@example.com");
+  await page.locator("#authPasscode").fill("secret88");
+  await page.locator("#authConfirmPasscode").fill("secret88");
+  await page.evaluate(() => {
+    window.ActionCloud.signUp = async () => ({ user: { id: "signup-user", identities: [{ id: "identity" }] }, session: null });
+  });
+  await page.getByRole("button", { name: "创建账号" }).click();
+  await expect(page.getByRole("heading", { name: "输入六位验证码" })).toBeVisible();
+  await expect(page.locator("#authOtpInputs input")).toHaveCount(6);
+  await expect(page.getByText("ne••••@example.com")).toBeVisible();
+});
+
+test("admin dashboard renders aggregated funnel data", async ({ page }) => {
+  await page.goto("/admin.html");
+  await page.evaluate(() => {
+    window.ActionCloud.signIn = async () => ({ user: { id: "admin" } });
+    window.ActionCloud.invoke = async () => ({
+      generated_at: new Date().toISOString(), period_days: 30,
+      overview: { total_users: 12, new_users: 4, active_users: 7, analyses_completed: 5, actions_completed: 3, weekly_viewers: 2 },
+      funnel: [{ key: "registered", label: "完成注册", users: 4, conversion: 100 }, { key: "first_input_saved", label: "保存首条输入", users: 3, conversion: 75 }],
+      features: [{ key: "source_saved", label: "记录灵感", events: 9, users: 3 }],
+      pages: [{ page: "overview", views: 8, users: 4 }],
+      daily: [{ date: "2026-07-16", active_users: 4, new_users: 2, analyses: 2, actions_completed: 1 }],
+      ai_quality: { analyses_started: 5, analyses_completed: 5, analyses_failed: 0, success_rate: 100, average_duration_ms: 2400, insights_confirmed: 3, insights_rejected: 1, acceptance_rate: 75, evidence_open_rate: 80, outcomes: { supported: 2, unclear: 1, disproved: 0 } },
+      users: [{ email: "ad••••@example.com", created_at: "2026-07-16T08:00:00Z", last_active_at: "2026-07-16T09:00:00Z", activation_stage: "确认洞察", event_count: 8 }],
+      feedback: [{ score: 5, message: "流程很清楚", page: "overview", created_at: "2026-07-16T09:00:00Z", user_email: "ad••••@example.com" }],
+    });
+  });
+  await page.locator("#adminEmail").fill("admin@example.com");
+  await page.locator("#adminPassword").fill("secret88");
+  await page.getByRole("button", { name: "登录数据中心" }).click();
+  await expect(page.getByText("累计注册")).toBeVisible();
+  await expect(page.getByText("12")).toBeVisible();
+  await expect(page.getByText("核心转化漏斗")).toBeVisible();
+});
