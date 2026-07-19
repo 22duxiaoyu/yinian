@@ -13,7 +13,7 @@
         <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-27" />
+        <link rel="stylesheet" href="./styles.css?v=action-28" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -92,14 +92,15 @@
             <div class="auth-entry">
                 <div class="auth-entry-inner">
                     <div class="mobile-auth-brand"><span class="mini-logo action-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><use href="#brand-action-mark" /></svg></span><strong>Action</strong></div>
-                    <p class="overline">欢迎回来</p>
-                    <h1>让每一个念头，<br />都有下一步。</h1>
-                    <p class="auth-lead">Action 会从你的零散记录中提炼模式、标记证据，并把洞察变成可执行的行动。</p>
+                    <header class="auth-intro">
+                        <h1 id="authTitle">登录 Action</h1>
+                        <p class="auth-lead" id="authLead">继续整理你的灵感、洞察与行动。</p>
+                    </header>
                     <div class="auth-mode-switch" id="authModeSwitch" role="tablist" aria-label="账号操作" hidden>
                         <button class="active" id="authLoginTab" data-auth-mode="login" role="tab" aria-selected="true" type="button">登录</button>
                         <button id="registerButton" data-auth-mode="register" role="tab" aria-selected="false" type="button">注册</button>
                     </div>
-                    <div class="auth-email-support" id="authEmailSupport" hidden aria-label="首版支持的邮箱">
+                    <div class="auth-email-support" id="authEmailSupport" hidden aria-label="首版支持的邮箱" aria-hidden="true">
                         <span>首版支持</span><b>Gmail</b><b>QQ</b><b>新浪</b><b>网易</b>
                     </div>
                     <form class="auth-form" id="authForm" novalidate>
@@ -147,11 +148,13 @@
                         </button>
                         <small>首次使用会自动创建云端账户</small>
                     </section>
-                    <div class="auth-divider"><span id="authDividerText">或者</span></div>
-                    <button class="demo-button" id="demoButton" type="button">
-                        <span>体验完整示例</span>
-                        <svg><use href="#i-arrow" /></svg>
-                    </button>
+                    <div class="auth-demo-row">
+                        <span id="authDividerText">暂不登录？</span>
+                        <button class="demo-button" id="demoButton" type="button">
+                            <span>查看示例空间</span>
+                            <svg><use href="#i-arrow" /></svg>
+                        </button>
+                    </div>
                     <p class="auth-legal">继续即表示你已阅读并同意 <a href="./terms.html" target="_blank" rel="noopener">服务条款</a> 与 <a href="./privacy.html" target="_blank" rel="noopener">隐私说明</a>。</p>
                     <section class="auth-success" id="authSuccess" aria-hidden="true" hidden>
                         <span class="auth-success-mark"><svg><use href="#i-check" /></svg></span>
@@ -550,6 +553,6 @@
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
         <script src="./cloud-config.js?v=2"></script>
         <script src="./cloud.js?v=6"></script>
-        <script src="./app.js?v=30"></script>
+        <script src="./app.js?v=31"></script>
     </body>
 </html>

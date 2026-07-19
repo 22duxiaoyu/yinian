@@ -85,6 +85,8 @@ const el = {
     registerButton: document.querySelector("#registerButton"),
     authLoginTab: document.querySelector("#authLoginTab"),
     authModeSwitch: document.querySelector("#authModeSwitch"),
+    authTitle: document.querySelector("#authTitle"),
+    authLead: document.querySelector("#authLead"),
     authEmailSupport: document.querySelector("#authEmailSupport"),
     authProviderSection: document.querySelector("#authProviderSection"),
     appleSignInButton: document.querySelector("#appleSignInButton"),
@@ -1145,7 +1147,7 @@ function configureCloudUi() {
     if (!state.cloudEnabled) return;
     el.authModeSwitch.hidden = false;
     el.authProviderSection.hidden = !state.oauthProviders.includes("apple");
-    el.authDividerText.textContent = "或先体验";
+    el.authDividerText.textContent = "暂不登录？";
     el.authNameLabel.textContent = "邮箱";
     el.authPasscodeLabel.textContent = "密码";
     el.authName.type = "email";
@@ -1160,6 +1162,9 @@ function setAuthMode(mode) {
     hideOtpStep();
     state.authMode = mode === "register" ? "register" : "login";
     const registering = state.authMode === "register";
+    el.authTitle.textContent = registering ? "创建 Action 账号" : "登录 Action";
+    el.authLead.textContent = registering ? "验证邮箱后，数据会在不同设备间同步。" : "继续整理你的灵感、洞察与行动。";
+    el.authDividerText.textContent = registering ? "暂不注册？" : "暂不登录？";
     el.authLoginTab?.classList.toggle("active", !registering);
     el.registerButton?.classList.toggle("active", registering);
     el.authLoginTab?.setAttribute("aria-selected", String(!registering));
@@ -1334,7 +1339,7 @@ function hideOtpStep() {
     el.authOtpPanel.hidden = true;
     el.authForm.hidden = false;
     el.authModeSwitch.hidden = !state.cloudEnabled;
-    el.authProviderSection.hidden = !state.cloudEnabled;
+    el.authProviderSection.hidden = !state.cloudEnabled || !state.oauthProviders.includes("apple");
     el.authScreen.classList.remove("otp-active");
     setOtpMessage();
 }

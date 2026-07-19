@@ -103,6 +103,8 @@ test("registration accepts first-release email providers and rejects unsupported
   await page.evaluate(() => localStorage.clear());
   await page.goto("/");
   await page.getByRole("tab", { name: "注册" }).click();
+  await expect(page.getByRole("heading", { name: "创建 Action 账号" })).toBeVisible();
+  await expect(page.locator("#authEmailSupport")).toBeHidden();
   await expect(page.locator("#authEmailSupport")).toContainText("Gmail");
   await expect(page.locator("#authEmailSupport")).toContainText("QQ");
   await expect(page.locator("#authEmailSupport")).toContainText("新浪");
@@ -121,6 +123,24 @@ test("registration accepts first-release email providers and rejects unsupported
   await page.locator("#authName").fill("new-user@qq.com");
   await page.getByRole("button", { name: "创建账号" }).click();
   await expect(page.getByRole("heading", { name: "输入六位验证码" })).toBeVisible();
+});
+
+test("authentication stays focused and fits a mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => localStorage.clear());
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "登录 Action" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "登录" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "查看示例空间" })).toBeVisible();
+
+  const dimensions = await page.evaluate(() => ({
+    clientWidth: document.documentElement.clientWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+    clientHeight: document.documentElement.clientHeight,
+    scrollHeight: document.documentElement.scrollHeight,
+  }));
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1);
+  expect(dimensions.scrollHeight).toBeLessThanOrEqual(dimensions.clientHeight + 1);
 });
 
 test("Apple account login stays hidden until the provider is configured", async ({ page }) => {
