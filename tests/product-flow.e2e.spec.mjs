@@ -72,7 +72,7 @@ test("registration moves into an inline six-digit email verification step", asyn
   await page.goto("/");
   await expect(page.locator("#authStatus")).toHaveCount(0);
   await page.getByRole("tab", { name: "注册" }).click();
-  await page.locator("#authName").fill("new-user@example.com");
+  await page.locator("#authName").fill("new-user@gmail.com");
   await page.locator("#authPasscode").fill("secret88");
   await page.locator("#authConfirmPasscode").fill("secret88");
   await page.evaluate(() => {
@@ -81,7 +81,7 @@ test("registration moves into an inline six-digit email verification step", asyn
   await page.getByRole("button", { name: "创建账号" }).click();
   await expect(page.getByRole("heading", { name: "输入六位验证码" })).toBeVisible();
   await expect(page.locator("#authOtpInputs input")).toHaveCount(6);
-  await expect(page.getByText("ne••••@example.com")).toBeVisible();
+  await expect(page.getByText("ne••••@gmail.com")).toBeVisible();
 });
 
 test("registration errors explain the reason in a global dialog and at the field", async ({ page }) => {
@@ -97,6 +97,36 @@ test("registration errors explain the reason in a global dialog and at the field
   await page.locator("#errorDialogClose").click();
   await expect(page.locator("#authName")).toHaveAttribute("aria-invalid", "true");
   await expect(page.locator("#authNameHelp")).toContainText("完整地址");
+});
+
+test("registration accepts first-release email providers and rejects unsupported domains", async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.goto("/");
+  await page.getByRole("tab", { name: "注册" }).click();
+  await expect(page.locator("#authEmailSupport")).toContainText("Gmail");
+  await expect(page.locator("#authEmailSupport")).toContainText("QQ");
+  await expect(page.locator("#authEmailSupport")).toContainText("新浪");
+  await expect(page.locator("#authEmailSupport")).toContainText("网易");
+  await page.locator("#authName").fill("new-user@outlook.com");
+  await page.locator("#authPasscode").fill("secret88");
+  await page.locator("#authConfirmPasscode").fill("secret88");
+  await page.getByRole("button", { name: "创建账号" }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await expect(page.locator("#errorDialogMessage")).toContainText("首版注册目前支持");
+  await page.locator("#errorDialogClose").click();
+
+  await page.evaluate(() => {
+    window.ActionCloud.signUp = async () => ({ user: { id: "signup-user", identities: [{ id: "identity" }] }, session: null });
+  });
+  await page.locator("#authName").fill("new-user@qq.com");
+  await page.getByRole("button", { name: "创建账号" }).click();
+  await expect(page.getByRole("heading", { name: "输入六位验证码" })).toBeVisible();
+});
+
+test("Apple account login stays hidden until the provider is configured", async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.goto("/");
+  await expect(page.locator("#authProviderSection")).toBeHidden();
 });
 
 test("admin dashboard renders aggregated funnel data", async ({ page }) => {
@@ -119,7 +149,7 @@ test("admin dashboard renders aggregated funnel data", async ({ page }) => {
   await page.locator("#adminPassword").fill("secret88");
   await page.getByRole("button", { name: "登录数据中心" }).click();
   await expect(page.getByText("累计注册")).toBeVisible();
-  await expect(page.getByText("12")).toBeVisible();
+  await expect(page.getByText("12", { exact: true })).toBeVisible();
   await expect(page.getByText("核心转化漏斗")).toBeVisible();
 });
 

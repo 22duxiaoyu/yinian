@@ -10,6 +10,22 @@ const WEEKLY_PREFIX = "action-local-weekly-v1:";
 const EVENTS_PREFIX = "action-local-events-v1:";
 const FEEDBACK_PREFIX = "action-local-feedback-v1:";
 const DEFAULT_PREFERENCES = { startView: "overview", reduceMotion: false };
+const SUPPORTED_SIGNUP_EMAIL_DOMAINS = new Map([
+    ["gmail.com", "Gmail"],
+    ["googlemail.com", "Gmail"],
+    ["qq.com", "QQ 邮箱"],
+    ["foxmail.com", "QQ 邮箱"],
+    ["sina.com", "新浪邮箱"],
+    ["sina.cn", "新浪邮箱"],
+    ["163.com", "网易邮箱"],
+    ["126.com", "网易邮箱"],
+    ["yeah.net", "网易邮箱"],
+    ["188.com", "网易邮箱"],
+    ["vip.163.com", "网易邮箱"],
+    ["vip.126.com", "网易邮箱"],
+    ["vip.188.com", "网易邮箱"],
+]);
+const PENDING_AUTH_PROVIDER_KEY = "action-pending-auth-provider";
 const DEMO_USER = {
     id: "portfolio-demo",
     name: "作品集访客",
@@ -30,6 +46,7 @@ const state = {
     weeklyReport: null,
     weeklyReports: [],
     cloudEnabled: false,
+    oauthProviders: [],
     cloudHydrating: false,
     cloudUnsubscribe: null,
     localMigrationCandidate: null,
@@ -68,6 +85,9 @@ const el = {
     registerButton: document.querySelector("#registerButton"),
     authLoginTab: document.querySelector("#authLoginTab"),
     authModeSwitch: document.querySelector("#authModeSwitch"),
+    authEmailSupport: document.querySelector("#authEmailSupport"),
+    authProviderSection: document.querySelector("#authProviderSection"),
+    appleSignInButton: document.querySelector("#appleSignInButton"),
     authConfirmWrap: document.querySelector("#authConfirmWrap"),
     authConfirmPasscode: document.querySelector("#authConfirmPasscode"),
     authConfirmHelp: document.querySelector("#authConfirmHelp"),
@@ -1124,6 +1144,7 @@ function renderAuthState() {
 function configureCloudUi() {
     if (!state.cloudEnabled) return;
     el.authModeSwitch.hidden = false;
+    el.authProviderSection.hidden = !state.oauthProviders.includes("apple");
     el.authDividerText.textContent = "或先体验";
     el.authNameLabel.textContent = "邮箱";
     el.authPasscodeLabel.textContent = "密码";
@@ -1146,10 +1167,16 @@ function setAuthMode(mode) {
     el.authConfirmWrap.hidden = !registering;
     el.authConfirmPasscode.required = registering;
     el.authForm.classList.toggle("register-mode", registering);
+    el.authScreen.classList.toggle("register-active", registering);
+    el.authEmailSupport.hidden = !registering;
+    el.authProviderSection.hidden = !state.cloudEnabled || !state.oauthProviders.includes("apple");
     el.authSubmitButton.textContent = registering ? "创建账号" : "登录";
     el.authPasscode.autocomplete = registering ? "new-password" : "current-password";
     resetAuthFieldMessages();
     clearAuthMessage();
+    if (window.innerWidth <= 760) {
+        window.setTimeout(() => { el.authScreen.scrollTop = 0; }, 120);
+    }
 }
 
 function showAuthSuccess(email) {
@@ -1196,6 +1223,20 @@ function resetAuthFieldMessages() {
 
 function isValidEmail(value) {
     return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(value);
+}
+
+function emailDomain(value) {
+    return value.trim().toLowerCase().split("@").pop() || "";
+}
+
+function supportedSignupEmailProvider(value) {
+    return SUPPORTED_SIGNUP_EMAIL_DOMAINS.get(emailDomain(value)) || "";
+}
+
+function unsupportedSignupEmailMessage(value) {
+    const domain = emailDomain(value);
+    const suffix = domain ? `当前填写的是 @${domain}。` : "";
+    return `首版注册目前支持 Gmail、QQ、新浪和网易邮箱。${suffix}`;
 }
 
 function describeAuthFailure(error, registering) {
@@ -1278,6 +1319,8 @@ function showOtpStep(email, message = "请输入邮件中的六位验证码。")
     el.authOtpEmail.textContent = email.replace(/^(.{2}).*(@.*)$/, "$1••••$2");
     el.authForm.hidden = true;
     el.authModeSwitch.hidden = true;
+    el.authProviderSection.hidden = true;
+    el.authEmailSupport.hidden = true;
     el.authOtpPanel.hidden = false;
     el.authScreen.classList.add("otp-active");
     resetOtpInputs();
@@ -1291,6 +1334,7 @@ function hideOtpStep() {
     el.authOtpPanel.hidden = true;
     el.authForm.hidden = false;
     el.authModeSwitch.hidden = !state.cloudEnabled;
+    el.authProviderSection.hidden = !state.cloudEnabled;
     el.authScreen.classList.remove("otp-active");
     setOtpMessage();
 }
@@ -2457,6 +2501,34 @@ function setAuthMessage(message, error = false) {
 
 el.demoButton.addEventListener("click", () => setActiveUser(DEMO_USER));
 
+async function signInWithApple() {
+    el.appleSignInButton.disabled = true;
+    el.appleSignInButton.classList.add("loading");
+    el.appleSignInButton.querySelector("span").textContent = "正在前往 Apple";
+    try {
+        sessionStorage.setItem(PENDING_AUTH_PROVIDER_KEY, "apple");
+        await window.ActionCloud.signInWithProvider("apple");
+    } catch (error) {
+        console.error(error);
+        sessionStorage.removeItem(PENDING_AUTH_PROVIDER_KEY);
+        const message = String(error?.message || "").toLowerCase();
+        if (message.includes("provider") && (message.includes("disabled") || message.includes("enabled") || message.includes("unsupported"))) {
+            showErrorDialog("Apple 登录服务尚未完成配置，请暂时使用支持的邮箱注册。");
+        } else if (message.includes("cancel") || message.includes("denied") || message.includes("access_denied")) {
+            showErrorDialog("你已取消 Apple 授权，本次没有登录。");
+        } else if (message.includes("fetch") || message.includes("network")) {
+            showErrorDialog("Apple 登录连接失败，请检查网络后重试。");
+        } else {
+            showErrorDialog("Apple 登录暂时没有完成，请稍后重试。");
+        }
+        el.appleSignInButton.disabled = false;
+        el.appleSignInButton.classList.remove("loading");
+        el.appleSignInButton.querySelector("span").textContent = "使用 Apple 账户继续";
+    }
+}
+
+el.appleSignInButton.addEventListener("click", signInWithApple);
+
 async function resendSignupOtp() {
     const email = (state.pendingSignupEmail || el.authName.value).trim();
     if (!email.includes("@")) {
@@ -2560,6 +2632,13 @@ el.authForm.addEventListener("submit", async (event) => {
         clearAuthMessage();
         if (!isValidEmail(name)) {
             const message = "邮箱格式不正确，请输入完整地址，例如 name@example.com。";
+            setAuthFieldState(el.authName, el.authNameHelp, message, true);
+            setAuthMessage(message, true);
+            el.authName.focus();
+            return;
+        }
+        if (registering && !supportedSignupEmailProvider(name)) {
+            const message = unsupportedSignupEmailMessage(name);
             setAuthFieldState(el.authName, el.authNameHelp, message, true);
             setAuthMessage(message, true);
             el.authName.focus();
@@ -3031,9 +3110,16 @@ async function bootstrapApp() {
     try {
         const cloud = await window.ActionCloud.init();
         state.cloudEnabled = cloud.configured;
+        state.oauthProviders = cloud.oauthProviders || [];
         configureCloudUi();
         if (cloud.configured && cloud.session?.user) {
             await activateCloudUser(cloud.session.user);
+            const provider = sessionStorage.getItem(PENDING_AUTH_PROVIDER_KEY);
+            if (provider) {
+                sessionStorage.removeItem(PENDING_AUTH_PROVIDER_KEY);
+                trackEvent("auth_completed", { mode: "oauth", provider });
+                showToast(provider === "apple" ? "已通过 Apple 账户登录" : "第三方账户登录成功");
+            }
             return;
         }
         if (cloud.configured) {

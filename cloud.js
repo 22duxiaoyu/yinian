@@ -1,6 +1,7 @@
 (function createActionCloud(global) {
     const config = global.ACTION_CLOUD_CONFIG || {};
     const configured = Boolean(config.supabaseUrl && config.publishableKey);
+    const oauthProviders = Array.isArray(config.oauthProviders) ? config.oauthProviders : [];
     let client = null;
     let loading = null;
 
@@ -19,14 +20,14 @@
     }
 
     async function init() {
-        if (!configured) return { configured: false, session: null };
+        if (!configured) return { configured: false, session: null, oauthProviders };
         const library = await loadSupabaseLibrary();
         client = library.createClient(config.supabaseUrl, config.publishableKey, {
             auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
         });
         const { data, error } = await client.auth.getSession();
         if (error) throw error;
-        return { configured: true, session: data.session };
+        return { configured: true, session: data.session, oauthProviders };
     }
 
     function requireClient() {
@@ -110,6 +111,16 @@
 
     async function signIn(email, password) {
         const { data, error } = await requireClient().auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        return data;
+    }
+
+    async function signInWithProvider(provider) {
+        const redirectTo = `${global.location.origin}${global.location.pathname}`;
+        const { data, error } = await requireClient().auth.signInWithOAuth({
+            provider,
+            options: { redirectTo },
+        });
         if (error) throw error;
         return data;
     }
@@ -401,6 +412,7 @@
         configured,
         init,
         signIn,
+        signInWithProvider,
         signUp,
         resendSignup,
         verifySignupOtp,

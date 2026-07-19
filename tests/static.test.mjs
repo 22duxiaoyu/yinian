@@ -73,6 +73,10 @@ test("email OTP and admin analytics contracts are present", async () => {
   assert.match(app, /showErrorDialog/);
   assert.match(app, /describeAuthFailure/);
   assert.match(cloud, /auth\.verifyOtp/);
+  assert.match(cloud, /auth\.signInWithOAuth/);
+  assert.match(html, /id="appleSignInButton"/);
+  assert.match(cloud, /oauthProviders/);
+  assert.match(app, /SUPPORTED_SIGNUP_EMAIL_DOMAINS/);
   assert.match(adminHtml, /核心转化漏斗/);
   assert.match(adminHtml, /id="adminErrorDialog"/);
   assert.match(adminApp, /admin-analytics/);
