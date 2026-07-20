@@ -2,9 +2,9 @@
 
 Action 是一款把零散想法提炼成洞察与行动的 AI 思考工作台。产品围绕“捕捉 → 理解 → 行动 → 反馈”建立完整闭环，而不是停留在记录和搜索层面。
 
-在线体验：https://22duxiaoyu.github.io/yinian/
+在线体验：https://www.actionmind.cn/
 
-管理员数据中心：https://22duxiaoyu.github.io/yinian/admin.html
+管理员数据中心：https://www.actionmind.cn/admin.html
 
 ## 产品能力
 

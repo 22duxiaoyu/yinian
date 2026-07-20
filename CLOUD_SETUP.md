@@ -28,7 +28,7 @@ window.ACTION_CLOUD_CONFIG = {
 npx supabase login
 npx supabase link --project-ref 你的项目编号
 npx supabase db push
-npx supabase secrets set DEEPSEEK_API_KEY=你的密钥 DEEPSEEK_MODEL=deepseek-v4-flash ALLOWED_ORIGINS=http://localhost:6002,https://22duxiaoyu.github.io
+npx supabase secrets set DEEPSEEK_API_KEY=你的密钥 DEEPSEEK_MODEL=deepseek-v4-flash ALLOWED_ORIGINS=http://localhost:6002,http://127.0.0.1:6002,https://www.actionmind.cn,https://22duxiaoyu.github.io
 npx supabase functions deploy analyze-insights
 npx supabase functions deploy generate-weekly
 npx supabase functions deploy ask-action
@@ -37,9 +37,9 @@ npx supabase functions deploy admin-analytics
 
 然后在 Supabase Dashboard 的 Authentication URL Configuration 中设置：
 
-- Site URL：`https://22duxiaoyu.github.io/yinian/`
+- Site URL：`https://www.actionmind.cn/`
 - Redirect URL：`http://localhost:6002/**`
-- Redirect URL：`https://22duxiaoyu.github.io/yinian/**`
+- Redirect URL：`https://www.actionmind.cn/**`
 
 ## 六位邮箱验证码
 

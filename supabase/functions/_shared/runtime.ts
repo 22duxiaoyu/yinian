@@ -1,6 +1,11 @@
 import { createClient, type SupabaseClient, type User } from "npm:@supabase/supabase-js@2";
 
-const defaultOrigins = ["http://localhost:6002", "http://127.0.0.1:6002", "https://22duxiaoyu.github.io"];
+const defaultOrigins = [
+  "http://localhost:6002",
+  "http://127.0.0.1:6002",
+  "https://www.actionmind.cn",
+  "https://22duxiaoyu.github.io",
+];
 
 export function corsHeaders(request: Request) {
   const configured = (Deno.env.get("ALLOWED_ORIGINS") || defaultOrigins.join(","))
