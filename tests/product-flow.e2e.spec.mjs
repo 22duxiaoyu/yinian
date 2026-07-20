@@ -47,6 +47,35 @@ test("capture, confirm, act and review form a complete local loop", async ({ pag
   await expect(page.locator("#weeklyTrend")).not.toBeEmpty();
 });
 
+test("action agent clarifies a goal before creating an approved plan", async ({ page }) => {
+  const tasksBefore = Number(await page.locator("#navActionCount").getAttribute("data-motion-value"));
+  await page.locator("#aiTrigger").click();
+  await expect(page.locator("#aiRail")).toHaveClass(/open/);
+  await expect(page.locator("#agentEmpty")).toBeVisible();
+
+  await page.locator("#aiQuestion").fill("我想在两周内完成一版可以用于面试展示的 AI 产品作品集");
+  await page.locator("#askAi").click();
+  await expect(page.locator("#agentConversation")).toContainText("什么时候算真正完成");
+  await expect(page.locator("#navActionCount")).toHaveAttribute("data-motion-value", String(tasksBefore));
+
+  await page.locator("#aiQuestion").fill("完成一个可公开访问的网站，每天投入两小时，不增加付费服务");
+  await page.locator("#askAi").click();
+  await expect(page.locator("#agentPlanSteps .agent-plan-step")).toHaveCount(4);
+  await expect(page.locator("#agentApprove")).toBeVisible();
+  await expect(page.locator("#navActionCount")).toHaveAttribute("data-motion-value", String(tasksBefore));
+
+  await page.locator("#agentApprove").click();
+  await expect(page.locator("#navActionCount")).toHaveAttribute("data-motion-value", String(tasksBefore + 4));
+  await expect(page.locator("#agentOverviewCard")).toHaveAttribute("data-status", "active");
+
+  await page.locator("#railClose").click();
+  await goTo(page, "actions");
+  await expect(page.locator("#todoActions")).toContainText("定义可验收的结果");
+  await goTo(page, "weekly");
+  await expect(page.locator("#weeklyAgentContext")).toBeVisible();
+  await expect(page.locator("#weeklyAgentContext")).toContainText("AI 产品作品集");
+});
+
 test("settings expose backup, feedback and deliberate account deletion", async ({ page }) => {
   await openSidebarOnMobile(page);
   await page.locator("#profileButton").click();

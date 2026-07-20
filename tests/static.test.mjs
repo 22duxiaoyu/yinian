@@ -84,3 +84,30 @@ test("email OTP and admin analytics contracts are present", async () => {
   assert.match(adminFunction, /ADMIN_EMAIL_HASHES/);
   assert.match(adminFunction, /SUPABASE_SERVICE_ROLE_KEY/);
 });
+
+test("action agent requires approval and persists an execution loop", async () => {
+  const [html, app, cloud, migration, orchestrator, weekly] = await Promise.all([
+    read("index.html"),
+    read("app.js"),
+    read("cloud.js"),
+    read("supabase/migrations/20260720090000_action_agent.sql"),
+    read("supabase/functions/agent-orchestrate/index.ts"),
+    read("supabase/functions/generate-weekly/index.ts"),
+  ]);
+
+  for (const id of ["agentOverviewCard", "agentStageStrip", "agentPlanPanel", "agentApprove", "weeklyAgentContext"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  for (const table of ["agent_goals", "agent_messages", "agent_plan_steps", "agent_runs", "agent_check_ins"]) {
+    assert.match(migration, new RegExp(table));
+  }
+  for (const table of ["agent_goals", "agent_messages", "agent_plan_steps", "agent_check_ins"]) assert.match(cloud, new RegExp(table));
+  assert.match(app, /只有你确认后/);
+  assert.match(app, /runAgentAction\("approve"\)/);
+  assert.match(app, /syncAgentStep/);
+  assert.match(orchestrator, /action === "approve"/);
+  assert.match(orchestrator, /action === "check_in"/);
+  assert.match(orchestrator, /action === "complete_step"/);
+  assert.match(orchestrator, /replan_required/);
+  assert.match(weekly, /agent_progress/);
+});

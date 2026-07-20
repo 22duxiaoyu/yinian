@@ -59,6 +59,10 @@
             resultText: row.result_text || "",
             resultOutcome: row.result_outcome || "",
             completedAt: row.completed_at || null,
+            agentGoalId: row.agent_goal_id || "",
+            agentStepId: row.agent_step_id || "",
+            dueAt: row.due_at || null,
+            priority: row.priority || "normal",
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         };
@@ -107,6 +111,68 @@
             createdAt: row.created_at,
             updatedAt: row.updated_at,
         } : null;
+    }
+
+    function mapAgent(agent) {
+        const source = agent && typeof agent === "object" ? agent : {};
+        const goalRow = source.goal && typeof source.goal === "object" ? source.goal : null;
+        const goal = goalRow ? {
+            id: goalRow.id,
+            title: goalRow.title,
+            objective: goalRow.objective,
+            status: goalRow.status,
+            targetDate: goalRow.target_date || null,
+            successCriteria: goalRow.success_criteria || "",
+            constraints: goalRow.constraints || {},
+            context: goalRow.context || {},
+            currentPlanVersion: Number(goalRow.current_plan_version || 0),
+            nextCheckInAt: goalRow.next_check_in_at || null,
+            createdAt: goalRow.created_at,
+            updatedAt: goalRow.updated_at,
+        } : null;
+        const messages = (Array.isArray(source.messages) ? source.messages : []).map((row) => ({
+            id: row.id,
+            goalId: row.goal_id,
+            role: row.role,
+            kind: row.kind,
+            content: row.content,
+            metadata: row.metadata || {},
+            createdAt: row.created_at,
+        }));
+        const steps = (Array.isArray(source.steps) ? source.steps : []).map((row) => ({
+            id: row.id,
+            goalId: row.goal_id,
+            version: Number(row.version || 0),
+            position: Number(row.position || 0),
+            title: row.title,
+            detail: row.detail || "",
+            durationMinutes: Number(row.duration_minutes || 15),
+            dueAt: row.due_at || null,
+            status: row.status,
+            successCriteria: row.success_criteria || "",
+            noteId: row.note_id || "",
+            createdAt: row.created_at,
+            updatedAt: row.updated_at,
+        }));
+        const checkIns = (Array.isArray(source.check_ins) ? source.check_ins : Array.isArray(source.checkIns) ? source.checkIns : []).map((row) => ({
+            id: row.id,
+            goalId: row.goal_id,
+            stepId: row.step_id || "",
+            dueAt: row.due_at,
+            status: row.status,
+            question: row.question,
+            response: row.response || "",
+            outcome: row.outcome || "",
+            answeredAt: row.answered_at || null,
+        }));
+        const currentSteps = goal ? steps.filter((step) => step.version === goal.currentPlanVersion) : [];
+        const completed = currentSteps.filter((step) => step.status === "completed").length;
+        const progress = source.progress && typeof source.progress === "object" ? {
+            completed: Number(source.progress.completed ?? completed),
+            total: Number(source.progress.total ?? currentSteps.length),
+            percentage: Number(source.progress.percentage ?? (currentSteps.length ? Math.round(completed / currentSteps.length * 100) : 0)),
+        } : { completed, total: currentSteps.length, percentage: currentSteps.length ? Math.round(completed / currentSteps.length * 100) : 0 };
+        return { goal, messages, steps: currentSteps, checkIns, progress };
     }
 
     async function signIn(email, password) {
@@ -164,14 +230,18 @@
 
     async function loadWorkspace(user) {
         const api = requireClient();
-        const [profileResult, notesResult, documentsResult, insightsResult, weeklyResult] = await Promise.all([
+        const [profileResult, notesResult, documentsResult, insightsResult, weeklyResult, goalsResult, messagesResult, stepsResult, checkInsResult] = await Promise.all([
             api.from("profiles").select("display_name,avatar_path,preferences").eq("id", user.id).maybeSingle(),
             api.from("notes").select("*").order("updated_at", { ascending: false }),
             api.from("documents").select("*").order("parsed_at", { ascending: false }),
             api.from("insights").select("*").order("updated_at", { ascending: false }),
             api.from("weekly_reports").select("*").order("week_start", { ascending: false }).limit(8),
+            api.from("agent_goals").select("*").order("updated_at", { ascending: false }).limit(12),
+            api.from("agent_messages").select("*").order("created_at", { ascending: true }).limit(120),
+            api.from("agent_plan_steps").select("*").order("version", { ascending: false }).order("position", { ascending: true }).limit(120),
+            api.from("agent_check_ins").select("*").order("due_at", { ascending: true }).limit(80),
         ]);
-        const error = [profileResult, notesResult, documentsResult, insightsResult, weeklyResult].find((result) => result.error)?.error;
+        const error = [profileResult, notesResult, documentsResult, insightsResult, weeklyResult, goalsResult, messagesResult, stepsResult, checkInsResult].find((result) => result.error)?.error;
         if (error) throw error;
         const fallbackName = user.user_metadata?.display_name || user.email?.split("@")[0] || "Action 用户";
         if (!profileResult.data) {
@@ -184,6 +254,16 @@
             const { data: avatarData, error: avatarError } = await api.storage.from("action-avatars").createSignedUrl(avatarPath, 604800);
             if (!avatarError) avatarUrl = avatarData?.signedUrl || "";
         }
+        const goals = goalsResult.data || [];
+        const activeGoal = goals.find((goal) => ["clarifying", "ready", "active", "paused"].includes(goal.status))
+            || goals.find((goal) => goal.status === "completed")
+            || null;
+        const agent = mapAgent(activeGoal ? {
+            goal: activeGoal,
+            messages: (messagesResult.data || []).filter((message) => message.goal_id === activeGoal.id),
+            steps: (stepsResult.data || []).filter((step) => step.goal_id === activeGoal.id),
+            check_ins: (checkInsResult.data || []).filter((checkIn) => checkIn.goal_id === activeGoal.id),
+        } : null);
         return {
             user: {
                 id: user.id,
@@ -199,6 +279,7 @@
             insights: (insightsResult.data || []).map(mapInsight),
             weeklyReports: (weeklyResult.data || []).map(mapWeeklyReport),
             weeklyReport: mapWeeklyReport(weeklyResult.data?.[0] || null),
+            agent,
         };
     }
 
@@ -219,6 +300,10 @@
             result_text: note.resultText || "",
             result_outcome: note.resultOutcome || null,
             completed_at: note.completedAt || null,
+            agent_goal_id: note.agentGoalId || null,
+            agent_step_id: note.agentStepId || null,
+            due_at: note.dueAt || null,
+            priority: ["low", "normal", "high"].includes(note.priority) ? note.priority : "normal",
             created_at: note.createdAt,
             updated_at: note.updatedAt,
         }));
@@ -400,7 +485,7 @@
     function subscribe(userId, onChange) {
         const api = requireClient();
         const channel = api.channel(`action-workspace-${userId}`);
-        ["notes", "documents", "insights", "weekly_reports"].forEach((table) => {
+        ["notes", "documents", "insights", "weekly_reports", "agent_goals", "agent_messages", "agent_plan_steps", "agent_check_ins"].forEach((table) => {
             channel.on("postgres_changes", { event: "*", schema: "public", table, filter: `user_id=eq.${userId}` }, onChange);
         });
         channel.on("postgres_changes", { event: "*", schema: "public", table: "profiles", filter: `id=eq.${userId}` }, onChange);
@@ -435,5 +520,7 @@
         subscribe,
         mapInsight,
         mapWeeklyReport,
+        mapNote,
+        mapAgent,
     };
 })(window);

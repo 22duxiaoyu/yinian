@@ -7,7 +7,7 @@
 1. 一个 Supabase 项目。当前项目已经创建并连接，项目 Ref 为 `uukyfcablxsuhrxgmfov`。
 2. Supabase 项目的 `Project URL` 和 `Publishable key`。这两项可以放进网页，不是私密密钥。
 3. 一个 DeepSeek API Key。它只能设置为 Supabase Secret，绝不能写进仓库或 `cloud-config.js`。
-4. 一个生产可用的 SMTP 服务。Supabase 免费项目的默认邮件服务不允许修改确认邮件模板，也不适合向公开用户发送注册邮件。
+4. 一个生产可用的 SMTP 服务。当前生产环境使用已验证的 `auth.actionmind.cn` 发件域名；新环境不能继续依赖 Supabase 默认邮件服务。
 
 ## 前端连接
 
@@ -32,6 +32,7 @@ npx supabase secrets set DEEPSEEK_API_KEY=你的密钥 DEEPSEEK_MODEL=deepseek-v
 npx supabase functions deploy analyze-insights
 npx supabase functions deploy generate-weekly
 npx supabase functions deploy ask-action
+npx supabase functions deploy agent-orchestrate
 npx supabase functions deploy admin-analytics
 ```
 
@@ -45,13 +46,24 @@ npx supabase functions deploy admin-analytics
 
 前端使用 `verifyOtp` 在当前注册页验证六位数字。验证码长度、有效期和邮件模板保存在 `supabase/config.toml` 与 `supabase/templates/confirmation.html`。
 
-先在 Supabase Dashboard 的 Authentication SMTP Settings 中配置自定义 SMTP，再运行：
+在 Supabase Dashboard 的 Authentication SMTP Settings 中配置自定义 SMTP 后运行：
 
 ```bash
 npx supabase config push --project-ref uukyfcablxsuhrxgmfov
 ```
 
-在自定义 SMTP 完成前，Supabase 会继续发送默认确认链接。注册页保留了兼容提示，用户点击邮件中的确认按钮后仍可完成登录。
+当前生产环境已经完成自定义 SMTP、发件域名和验证码模板配置。邮件正文直接显示六位验证码，不再以确认链接作为默认注册流程；验证码有效期为 10 分钟。
+
+## 个人行动 Agent
+
+`agent-orchestrate` 负责目标澄清、计划生成、人工确认、行动创建、阶段检查与重新规划。相关表和 RLS 策略由 `20260720090000_action_agent.sql` 创建。
+
+关键边界：
+
+- 计划处于 `ready` 前只保存提问、回答和草案；
+- 只有用户执行 `approve` 后，服务端才把计划步骤写成行动；
+- 行动完成状态由用户操作同步，Agent 不能自行判定完成；
+- 反馈触发的新计划必须再次确认，不能静默覆盖当前行动。
 
 ## 管理员数据中心
 

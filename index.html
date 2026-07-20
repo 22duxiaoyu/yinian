@@ -10,10 +10,11 @@
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Action · AI 思考工作台" />
         <meta property="og:description" content="从零散输入中识别模式、追溯证据，并把洞察变成行动。" />
-        <meta property="og:url" content="https://22duxiaoyu.github.io/yinian/" />
+        <meta property="og:url" content="https://www.actionmind.cn/" />
+        <link rel="canonical" href="https://www.actionmind.cn/" />
         <meta name="theme-color" content="#eef1f5" />
         <title>Action · AI 思考工作台</title>
-        <link rel="stylesheet" href="./styles.css?v=action-28" />
+        <link rel="stylesheet" href="./styles.css?v=action-29" />
     </head>
     <body>
         <svg aria-hidden="true" class="icon-sprite">
@@ -220,7 +221,7 @@
                     <div class="breadcrumb"><span id="breadcrumbParent">Action</span><svg><use href="#i-chevron" /></svg><strong id="breadcrumbCurrent">工作台</strong></div>
                     <div class="topbar-actions">
                         <button class="search-trigger" id="searchTrigger" type="button"><svg><use href="#i-search" /></svg><span>搜索想法</span><kbd>⌘ K</kbd></button>
-                        <button class="ai-trigger" id="aiTrigger" type="button" aria-controls="aiRail" aria-expanded="false"><svg><use href="#i-spark" /></svg><span>与 Action 对话</span></button>
+                        <button class="ai-trigger" id="aiTrigger" type="button" aria-controls="aiRail" aria-expanded="false"><svg><use href="#i-spark" /></svg><span>行动 Agent</span></button>
                         <button class="icon-button" type="button" title="通知"><svg><use href="#i-bell" /></svg><span class="notification-dot"></span></button>
                         <button class="primary-button compact" id="quickCapture" type="button"><svg><use href="#i-plus" /></svg><span>快速输入</span></button>
                     </div>
@@ -239,6 +240,18 @@
                                 <button class="primary-button" id="runAnalysis" type="button"><svg><use href="#i-spark" /></svg><span>整理待确认洞察</span></button>
                             </div>
                         </div>
+
+                        <section class="agent-overview-card" id="agentOverviewCard" data-status="empty" aria-labelledby="agentOverviewTitle">
+                            <div class="agent-overview-main">
+                                <span class="agent-overview-icon"><svg><use href="#i-spark" /></svg></span>
+                                <div><span id="agentOverviewStatus">尚未设定目标</span><h2 id="agentOverviewTitle">把一件想推进的事交给行动 Agent</h2><p id="agentOverviewCopy">它会先问清目标，再给出需要你确认的计划，不会擅自创建任务。</p></div>
+                            </div>
+                            <div class="agent-overview-progress" aria-label="Agent 目标进度">
+                                <span id="agentOverviewProgress">0／0</span>
+                                <div><i id="agentOverviewBar"></i></div>
+                            </div>
+                            <button class="agent-overview-open" id="agentOverviewOpen" type="button"><span>设定目标</span><svg><use href="#i-arrow" /></svg></button>
+                        </section>
 
                         <div class="workbench-main-grid">
                             <section class="workbench-primary focus-board" aria-labelledby="focusTaskTitle">
@@ -352,6 +365,7 @@
                         <article class="weekly-report weekly-map-report" data-layout="balanced" data-has-actions="true">
                             <header><span>ACTION / WEEKLY MAP <em id="weeklyLayoutLabel">AI 标准布局</em></span><strong id="weeklyDate">--</strong></header>
                             <section class="weekly-map-intro"><div><p>本周复盘地图</p><h2>一张图看清本周发生了什么。</h2><span id="weeklyLayoutSummary">中心是本周核心判断，四个分支分别说明它从哪里来、如何被验证，以及下一步去哪里。</span></div><dl><div><dt>本周输入</dt><dd id="weeklyHeaderInputs">0</dd></div><div><dt>完成行动</dt><dd id="weeklyHeaderDone">0</dd></div><div><dt>行动完成率</dt><dd id="weeklyHeaderRate">0%</dd></div></dl></section>
+                            <div class="weekly-agent-context" id="weeklyAgentContext" hidden></div>
                             <section class="weekly-mindmap-section">
                                 <div class="weekly-mindmap-heading"><span>MIND MAP / WEEKLY 01</span><strong>输入、判断、行动与下一步</strong></div>
                                 <div class="weekly-mindmap">
@@ -399,11 +413,28 @@
             </main>
 
             <div class="ai-rail-backdrop" id="aiRailBackdrop" hidden></div>
-            <aside class="ai-rail" id="aiRail" aria-label="AI 协作面板" aria-hidden="true">
-                <header><div><span class="ai-mark"><svg><use href="#i-spark" /></svg></span><span><strong>Action AI</strong><small id="aiStatusText">已理解当前空间</small></span></div><button class="icon-button rail-close" id="railClose" type="button" title="关闭面板"><svg><use href="#i-x" /></svg></button></header>
-                <div class="ai-composer ai-composer-primary"><label for="aiQuestion">直接问 Action</label><div><textarea id="aiQuestion" rows="2" placeholder="输入问题，或让 Action 帮你梳理当前思路…"></textarea><button id="askAi" type="button" title="发送"><svg><use href="#i-send" /></svg></button></div><p>回答会引用你的原始记录，不会修改原文。</p></div>
-                <section class="rail-insight"><span class="rail-label">AI 建议</span><h2 id="railSuggestion">把“开始做作品集”缩小为“先写出第一屏要证明什么”。</h2><p>这个动作足够小，又能直接验证你的产品叙事是否清晰。</p><button id="acceptSuggestion" type="button"><span>转成行动</span><svg><use href="#i-arrow" /></svg></button></section>
-                <section class="rail-evidence"><div class="rail-section-head"><span>这条建议的依据</span><button data-open-evidence="启动成本" type="button">查看全部</button></div><div id="railEvidenceList"></div></section>
+            <aside class="ai-rail" id="aiRail" aria-label="行动 Agent" aria-hidden="true">
+                <header><div><span class="ai-mark"><svg><use href="#i-spark" /></svg></span><span><strong>Action Agent</strong><small id="aiStatusText">等待你的目标</small></span></div><div class="agent-header-actions"><button id="agentNewGoal" type="button">新目标</button><button class="icon-button rail-close" id="railClose" type="button" title="关闭面板"><svg><use href="#i-x" /></svg></button></div></header>
+                <div class="agent-stage-strip" id="agentStageStrip" data-stage="goal" aria-label="Agent 工作阶段">
+                    <span data-agent-stage="goal"><i>1</i>明确目标</span><span data-agent-stage="plan"><i>2</i>确认计划</span><span data-agent-stage="execute"><i>3</i>执行反馈</span>
+                </div>
+                <section class="agent-empty" id="agentEmpty">
+                    <span class="agent-empty-mark"><svg><use href="#i-target" /></svg></span>
+                    <h2>你想真正推进哪件事？</h2>
+                    <p>先说结果，不必先写计划。Action 会结合你的记录追问关键信息，再把计划交给你确认。</p>
+                    <div class="agent-prompt-list">
+                        <button data-agent-prompt="我想在两周内完成一版可以面试展示的 AI 产品作品集。" type="button">完成 AI 产品作品集</button>
+                        <button data-agent-prompt="我想把一个模糊想法变成这周可以验证的产品实验。" type="button">设计一个产品实验</button>
+                        <button data-agent-prompt="请根据我最近的记录，帮我确定最值得优先推进的一件事。" type="button">从现有记录找方向</button>
+                    </div>
+                </section>
+                <div class="agent-conversation" id="agentConversation" aria-live="polite"></div>
+                <section class="agent-plan-panel" id="agentPlanPanel" hidden>
+                    <header><div><span>待你确认的计划</span><h2 id="agentPlanTitle">行动计划</h2></div><em id="agentPlanMeta">0 个步骤</em></header>
+                    <div class="agent-plan-steps" id="agentPlanSteps"></div>
+                    <div class="agent-plan-actions"><button class="agent-approve" id="agentApprove" type="button"><svg><use href="#i-check" /></svg><span>确认并创建行动</span></button><button id="agentRevise" type="button">调整计划</button><button id="agentPause" type="button">暂停目标</button></div>
+                </section>
+                <div class="ai-composer ai-composer-primary agent-composer"><label id="agentComposerLabel" for="aiQuestion">描述你的目标</label><div><textarea id="aiQuestion" rows="2" placeholder="例如：我想在两周内完成一版作品集…"></textarea><button id="askAi" type="button" title="发送"><svg><use href="#i-send" /></svg></button></div><p id="agentComposerHint">计划由你确认后才会进入行动页。</p></div>
                 <div class="reasoning-card" aria-hidden="true">
                     <div class="reasoning-head"><span>本次分析路径</span><em id="analysisTime">刚刚</em></div>
                     <div class="reasoning-steps" id="reasoningSteps">
@@ -412,7 +443,7 @@
                         <div class="complete"><i><svg><use href="#i-check" /></svg></i><span><strong>交叉验证</strong><small>排除 2 条弱相关表达</small></span></div>
                     </div>
                 </div>
-                <p class="ai-boundary-note"><svg><use href="#i-shield" /></svg><span>AI 可能出错。它只整理和建议，不替你确认洞察或做决定。</span></p>
+                <p class="ai-boundary-note"><svg><use href="#i-shield" /></svg><span>Action 会主动跟进，但目标、计划变更和关键决定始终由你确认。</span></p>
             </aside>
         </div>
 
@@ -552,7 +583,7 @@
         </div>
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
         <script src="./cloud-config.js?v=2"></script>
-        <script src="./cloud.js?v=6"></script>
-        <script src="./app.js?v=31"></script>
+        <script src="./cloud.js?v=7"></script>
+        <script src="./app.js?v=32"></script>
     </body>
 </html>
