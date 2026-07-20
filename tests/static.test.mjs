@@ -76,6 +76,8 @@ test("email OTP and admin analytics contracts are present", async () => {
   assert.match(cloud, /auth\.signInWithOAuth/);
   assert.match(html, /id="appleSignInButton"/);
   assert.match(cloud, /oauthProviders/);
+  assert.match(cloud, /normalizeFunctionError/);
+  assert.match(cloud, /response\.clone/);
   assert.match(app, /SUPPORTED_SIGNUP_EMAIL_DOMAINS/);
   assert.match(adminHtml, /核心转化漏斗/);
   assert.match(adminHtml, /id="adminErrorDialog"/);

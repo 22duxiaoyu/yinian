@@ -67,8 +67,13 @@ function showError(message) {
 
 function adminErrorMessage(error, context = "data") {
     const message = String(error?.message || "").toLowerCase();
+    const status = Number(error?.status || 0);
     if (message.includes("invalid login") || message.includes("invalid credentials")) return "管理员邮箱或密码不正确。";
-    if (message.includes("forbidden") || message.includes("unauthorized") || message.includes("permission") || message.includes("403")) return "当前账号没有管理员权限，请使用指定管理员邮箱登录。";
+    if (status === 401 || message.includes("jwt") || message.includes("session") || message.includes("token")) return "管理员登录已过期，请退出后重新登录。";
+    if (status === 403 || message.includes("没有管理权限") || message.includes("forbidden") || message.includes("permission")) return "当前账号没有管理员权限，请使用指定管理员邮箱登录。";
+    if (status === 404 || message.includes("not found")) return "后台统计服务尚未部署，请联系管理员检查云端配置。";
+    if (status === 429 || message.includes("rate limit")) return "刷新次数过多，请稍等片刻后再试。";
+    if (message.includes("admin_service_not_configured")) return "后台统计服务尚未配置完成。";
     if (message.includes("fetch") || message.includes("network")) return "网络连接失败，请检查网络后重试。";
     return context === "login" ? "登录失败，请检查账号信息后重试。" : "暂时无法读取后台数据，请稍后重试。";
 }

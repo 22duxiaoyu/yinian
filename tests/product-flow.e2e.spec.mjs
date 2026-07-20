@@ -213,3 +213,20 @@ test("admin login errors use the same visible dialog pattern", async ({ page }) 
   await expect(page.getByRole("alertdialog")).toBeVisible();
   await expect(page.locator("#adminErrorDialogMessage")).toContainText("邮箱或密码不正确");
 });
+
+test("admin dashboard explains rejected permissions instead of hiding the function error", async ({ page }) => {
+  await page.goto("/admin.html");
+  await page.evaluate(() => {
+    window.ActionCloud.signIn = async () => ({ user: { id: "viewer" } });
+    window.ActionCloud.invoke = async () => {
+      const error = new Error("当前账号没有管理权限");
+      error.status = 403;
+      throw error;
+    };
+  });
+  await page.locator("#adminEmail").fill("viewer@example.com");
+  await page.locator("#adminPassword").fill("secret88");
+  await page.getByRole("button", { name: "登录数据中心" }).click();
+  await expect(page.getByRole("alertdialog")).toBeVisible();
+  await expect(page.locator("#adminErrorDialogMessage")).toContainText("没有管理员权限");
+});

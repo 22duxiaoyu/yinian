@@ -476,9 +476,29 @@
         if (error) throw error;
     }
 
+    async function normalizeFunctionError(error) {
+        const response = error?.context;
+        let payload = null;
+        if (response && typeof response.clone === "function") {
+            try {
+                const copy = response.clone();
+                const contentType = copy.headers?.get?.("content-type") || "";
+                payload = contentType.includes("application/json") ? await copy.json() : await copy.text();
+            } catch (_) {
+                payload = null;
+            }
+        }
+        const detail = typeof payload === "string" ? payload : payload?.error || payload?.message || payload?.msg;
+        const normalized = new Error(String(detail || error?.message || "云端服务请求失败"));
+        normalized.name = error?.name || "FunctionError";
+        normalized.status = Number(response?.status || error?.status || 0);
+        normalized.cause = error;
+        return normalized;
+    }
+
     async function invoke(name, body = {}) {
         const { data, error } = await requireClient().functions.invoke(name, { body });
-        if (error) throw error;
+        if (error) throw await normalizeFunctionError(error);
         return data;
     }
 
