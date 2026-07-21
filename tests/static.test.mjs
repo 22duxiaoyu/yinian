@@ -113,3 +113,14 @@ test("action agent requires approval and persists an execution loop", async () =
   assert.match(orchestrator, /replan_required/);
   assert.match(weekly, /agent_progress/);
 });
+
+test("insight decisions create missing rows and feedback in one database transaction", async () => {
+  const [cloud, migration] = await Promise.all([
+    read("cloud.js"),
+    read("supabase/migrations/20260721090000_atomic_insight_decision.sql"),
+  ]);
+  assert.match(cloud, /rpc\("decide_insight"/);
+  assert.match(migration, /on conflict \(user_id, insight_key\) do update/);
+  assert.match(migration, /insert into public\.insight_feedback/);
+  assert.match(migration, /security invoker/);
+});

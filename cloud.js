@@ -410,24 +410,23 @@
     }
 
     async function updateInsightStatus(userId, insight, status) {
-        const decidedAt = new Date().toISOString();
         const api = requireClient();
-        const { data, error } = await api.from("insights")
-            .update({ status, decided_at: decidedAt })
-            .eq("user_id", userId)
-            .eq("insight_key", insight.id)
-            .select()
-            .single();
-        if (error) throw error;
-        const { error: feedbackError } = await api.from("insight_feedback").insert({
-            user_id: userId,
-            insight_key: insight.id,
-            insight_title: insight.title,
-            insight_topic: insight.topic,
-            decision: status,
+        const { data, error } = await api.rpc("decide_insight", {
+            p_insight_key: insight.id,
+            p_label: insight.label || "行为模式",
+            p_topic: insight.topic || "待确认主题",
+            p_title: insight.title || "待确认洞察",
+            p_detail: insight.detail || "",
+            p_evidence_count: Number(insight.evidence || 0),
+            p_confidence: Number(insight.confidence || 0),
+            p_accent: /^#[0-9a-f]{6}$/i.test(insight.accent || "") ? insight.accent : "#667d92",
+            p_status: status,
+            p_evidence_refs: Array.isArray(insight.evidenceRefs) ? insight.evidenceRefs : [],
         });
-        if (feedbackError) throw feedbackError;
-        return mapInsight(data);
+        if (error) throw error;
+        const saved = Array.isArray(data) ? data[0] : data;
+        if (!saved) throw new Error("洞察判断保存后没有返回记录");
+        return mapInsight(saved);
     }
 
     async function trackEvent(userId, eventName, page, properties = {}) {

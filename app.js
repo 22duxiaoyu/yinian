@@ -2445,7 +2445,13 @@ async function setInsightStatus(insightKey, status) {
         saveLocalInsights();
         renderAll();
         console.error("Insight decision sync failed", error);
-        showToast("判断没有同步成功，请检查网络后重试");
+        const code = String(error?.code || "").toUpperCase();
+        const message = String(error?.message || "").toLowerCase();
+        if (code === "42501" || code === "PGRST301" || message.includes("jwt") || message.includes("session")) {
+            showToast("登录状态已过期，请重新登录后再提交判断");
+        } else {
+            showToast("判断没有保存成功，已恢复到原状态，请稍后重试");
+        }
     }
 }
 
