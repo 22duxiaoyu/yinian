@@ -23,12 +23,10 @@
   inset: 0;
   border: 0;
   background: transparent;
-  z-index: 200;
+  z-index: 1600;
 }
 .local-storage-popover {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 10px);
+  position: fixed;
   width: min(300px, calc(100vw - 32px));
   box-sizing: border-box;
   padding: 16px;
@@ -36,7 +34,7 @@
   border: 1px solid #dfe5ec;
   border-radius: 10px;
   box-shadow: 0 8px 30px #1b35551a;
-  z-index: 201;
+  z-index: 1601;
   color: #44546b;
   line-height: 1.6;
   text-align: left;
@@ -18628,9 +18626,15 @@ body,
 
   // prototypes/06-course-project-designer/ui/local-storage-status.jsx
   var import_react4 = __toESM(require_react(), 1);
+  var import_react_dom = __toESM(require_react_dom(), 1);
   function LocalStorageStatus() {
-    const [open2, setOpen] = (0, import_react4.useState)(false);
-    return /* @__PURE__ */ import_react4.default.createElement("div", { className: "local-storage-status" }, /* @__PURE__ */ import_react4.default.createElement("button", { type: "button", "aria-expanded": open2, onClick: () => setOpen(!open2) }, /* @__PURE__ */ import_react4.default.createElement(HardDrive, { size: 16 }), "\u672C\u5730\u4FDD\u5B58"), open2 && /* @__PURE__ */ import_react4.default.createElement(import_react4.default.Fragment, null, /* @__PURE__ */ import_react4.default.createElement("button", { className: "local-storage-dismiss", "aria-label": "\u5173\u95ED\u4FDD\u5B58\u8BF4\u660E", onClick: () => setOpen(false) }), /* @__PURE__ */ import_react4.default.createElement("div", { className: "local-storage-popover", role: "status" }, /* @__PURE__ */ import_react4.default.createElement("strong", null, "\u65E0\u9700\u8D26\u53F7\uFF0C\u6253\u5F00\u5373\u53EF\u4F7F\u7528"), /* @__PURE__ */ import_react4.default.createElement("p", null, "\u9879\u76EE\u3001\u5BF9\u8BDD\u548C\u9644\u4EF6\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u4E0D\u4F1A\u540C\u6B65\u5230\u5176\u4ED6\u8BBE\u5907\u3002"), /* @__PURE__ */ import_react4.default.createElement("p", null, "\u6E05\u7406\u672C\u7F51\u7AD9\u7684\u6D4F\u89C8\u5668\u6570\u636E\u4F1A\u5220\u9664\u5DF2\u4FDD\u5B58\u5185\u5BB9\u3002\u53D1\u9001\u7ED9 AI \u7684\u5185\u5BB9\u548C\u53C2\u8003\u8D44\u6599\u4F1A\u7528\u4E8E\u751F\u6210\u56DE\u590D\u3002"))));
+    const trigger = (0, import_react4.useRef)(null), [position, setPosition] = (0, import_react4.useState)({}), [open2, setOpen] = (0, import_react4.useState)(false);
+    const toggle = () => {
+      const rect = trigger.current.getBoundingClientRect(), width = Math.min(300, window.innerWidth - 32);
+      setPosition({ top: rect.bottom + 10, left: Math.max(16, Math.min(rect.right - width, window.innerWidth - width - 16)) });
+      setOpen(!open2);
+    };
+    return /* @__PURE__ */ import_react4.default.createElement("div", { className: "local-storage-status" }, /* @__PURE__ */ import_react4.default.createElement("button", { ref: trigger, type: "button", "aria-expanded": open2, onClick: toggle }, /* @__PURE__ */ import_react4.default.createElement(HardDrive, { size: 16 }), "\u672C\u5730\u4FDD\u5B58"), open2 && (0, import_react_dom.createPortal)(/* @__PURE__ */ import_react4.default.createElement(import_react4.default.Fragment, null, /* @__PURE__ */ import_react4.default.createElement("button", { className: "local-storage-dismiss", "aria-label": "\u5173\u95ED\u4FDD\u5B58\u8BF4\u660E", onClick: () => setOpen(false) }), /* @__PURE__ */ import_react4.default.createElement("div", { className: "local-storage-popover", style: position, role: "status" }, /* @__PURE__ */ import_react4.default.createElement("strong", null, "\u65E0\u9700\u8D26\u53F7\uFF0C\u6253\u5F00\u5373\u53EF\u4F7F\u7528"), /* @__PURE__ */ import_react4.default.createElement("p", null, "\u9879\u76EE\u3001\u5BF9\u8BDD\u548C\u9644\u4EF6\u4FDD\u5B58\u5728\u5F53\u524D\u6D4F\u89C8\u5668\uFF0C\u4E0D\u4F1A\u540C\u6B65\u5230\u5176\u4ED6\u8BBE\u5907\u3002"), /* @__PURE__ */ import_react4.default.createElement("p", null, "\u6E05\u7406\u672C\u7F51\u7AD9\u7684\u6D4F\u89C8\u5668\u6570\u636E\u4F1A\u5220\u9664\u5DF2\u4FDD\u5B58\u5185\u5BB9\u3002\u53D1\u9001\u7ED9 AI \u7684\u5185\u5BB9\u548C\u53C2\u8003\u8D44\u6599\u4F1A\u7528\u4E8E\u751F\u6210\u56DE\u590D\u3002"))), document.body));
   }
 
   // prototypes/06-course-project-designer/assets/platform-reference.png
@@ -19110,11 +19114,11 @@ ${text2}` : selected.opening;
 
   // prototypes/06-course-project-designer/ui/composer.jsx
   var import_react10 = __toESM(require_react(), 1);
-  var import_react_dom2 = __toESM(require_react_dom(), 1);
+  var import_react_dom3 = __toESM(require_react_dom(), 1);
 
   // prototypes/06-course-project-designer/ui/chat-attachments.jsx
   var import_react9 = __toESM(require_react(), 1);
-  var import_react_dom = __toESM(require_react_dom(), 1);
+  var import_react_dom2 = __toESM(require_react_dom(), 1);
 
   // prototypes/06-course-project-designer/task-attachments.js
   function open() {
@@ -19243,7 +19247,7 @@ ${text2}` : selected.opening;
       setOpen(false);
       setPinned(false);
       onRetry(item);
-    } }, /* @__PURE__ */ import_react9.default.createElement(RotateCw, { size: 11 }), "\u91CD\u65B0\u8BFB\u53D6"), open2 && position && (0, import_react_dom.createPortal)(/* @__PURE__ */ import_react9.default.createElement("aside", { className: "chat-file-preview", style: position, "aria-label": "\u6587\u4EF6\u9884\u89C8\uFF1A" + item.name, onMouseEnter: show, onMouseLeave: hide }, /* @__PURE__ */ import_react9.default.createElement("header", null, /* @__PURE__ */ import_react9.default.createElement(FileText, { size: 16 }), /* @__PURE__ */ import_react9.default.createElement("strong", null, item.name)), /* @__PURE__ */ import_react9.default.createElement("small", null, extension, " \xB7 ", item.size < 1024 ? item.size + " B" : item.size < 1024 * 1024 ? Math.ceil(item.size / 1024) + " KB" : (item.size / 1024 / 1024).toFixed(1) + " MB", " \xB7 ", reading ? "\u6B63\u5728\u8BFB\u53D6" : failed ? "\u8BFB\u53D6\u5931\u8D25" : "\u5DF2\u5C31\u7EEA"), failed ? /* @__PURE__ */ import_react9.default.createElement("div", { className: "chat-file-error", role: "alert" }, /* @__PURE__ */ import_react9.default.createElement("p", null, item.error), onRetry && /* @__PURE__ */ import_react9.default.createElement("button", { type: "button", onClick: () => onRetry(item) }, /* @__PURE__ */ import_react9.default.createElement(RotateCw, { size: 13 }), "\u91CD\u65B0\u8BFB\u53D6")) : /* @__PURE__ */ import_react9.default.createElement("pre", null, reading ? "\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5185\u5BB9\u2026" : item.text?.slice(0, 1400) || "\u6682\u65E0\u9884\u89C8\u5185\u5BB9"), !reading && !failed && /* @__PURE__ */ import_react9.default.createElement("footer", null, onRemove ? "\u6B63\u6587\u9884\u89C8 \xB7 \u53D1\u9001\u65F6\u968F\u6D88\u606F\u4E00\u8D77\u63D0\u4F9B\u7ED9 AI" : "\u6B63\u6587\u9884\u89C8 \xB7 \u5DF2\u968F\u672C\u6761\u6D88\u606F\u53D1\u9001")), document.body));
+    } }, /* @__PURE__ */ import_react9.default.createElement(RotateCw, { size: 11 }), "\u91CD\u65B0\u8BFB\u53D6"), open2 && position && (0, import_react_dom2.createPortal)(/* @__PURE__ */ import_react9.default.createElement("aside", { className: "chat-file-preview", style: position, "aria-label": "\u6587\u4EF6\u9884\u89C8\uFF1A" + item.name, onMouseEnter: show, onMouseLeave: hide }, /* @__PURE__ */ import_react9.default.createElement("header", null, /* @__PURE__ */ import_react9.default.createElement(FileText, { size: 16 }), /* @__PURE__ */ import_react9.default.createElement("strong", null, item.name)), /* @__PURE__ */ import_react9.default.createElement("small", null, extension, " \xB7 ", item.size < 1024 ? item.size + " B" : item.size < 1024 * 1024 ? Math.ceil(item.size / 1024) + " KB" : (item.size / 1024 / 1024).toFixed(1) + " MB", " \xB7 ", reading ? "\u6B63\u5728\u8BFB\u53D6" : failed ? "\u8BFB\u53D6\u5931\u8D25" : "\u5DF2\u5C31\u7EEA"), failed ? /* @__PURE__ */ import_react9.default.createElement("div", { className: "chat-file-error", role: "alert" }, /* @__PURE__ */ import_react9.default.createElement("p", null, item.error), onRetry && /* @__PURE__ */ import_react9.default.createElement("button", { type: "button", onClick: () => onRetry(item) }, /* @__PURE__ */ import_react9.default.createElement(RotateCw, { size: 13 }), "\u91CD\u65B0\u8BFB\u53D6")) : /* @__PURE__ */ import_react9.default.createElement("pre", null, reading ? "\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5185\u5BB9\u2026" : item.text?.slice(0, 1400) || "\u6682\u65E0\u9884\u89C8\u5185\u5BB9"), !reading && !failed && /* @__PURE__ */ import_react9.default.createElement("footer", null, onRemove ? "\u6B63\u6587\u9884\u89C8 \xB7 \u53D1\u9001\u65F6\u968F\u6D88\u606F\u4E00\u8D77\u63D0\u4F9B\u7ED9 AI" : "\u6B63\u6587\u9884\u89C8 \xB7 \u5DF2\u968F\u672C\u6761\u6D88\u606F\u53D1\u9001")), document.body));
   }
   function MessageAttachments({ items = [] }) {
     return items.length > 0 && /* @__PURE__ */ import_react9.default.createElement("div", { className: "message-attachments" }, items.map((item) => /* @__PURE__ */ import_react9.default.createElement(FileCard, { key: item.id, item })));
@@ -19351,7 +19355,7 @@ ${text2}` : selected.opening;
     };
     const currentExtra = value !== "\u667A\u80FD\u63A8\u8350" && !p.options.includes(value);
     const option = (v) => /* @__PURE__ */ import_react10.default.createElement("button", { type: "button", key: v, className: value === v ? "selected" : "", "aria-pressed": value === v, onClick: () => onSelect(v) }, /* @__PURE__ */ import_react10.default.createElement("span", null, p.labels?.[v] || v), value === v && /* @__PURE__ */ import_react10.default.createElement(Check, { size: 13 }));
-    return (0, import_react_dom2.createPortal)(/* @__PURE__ */ import_react10.default.createElement("div", { ref: panel, className: "parameter-menu parameter-popover", role: "dialog", "aria-label": p.label + "\u8BBE\u7F6E", style: { ...position, visibility: position ? "visible" : "hidden" } }, /* @__PURE__ */ import_react10.default.createElement("p", null, p.label), p.options.map(option), currentExtra && !p.custom && option(value), p.custom && /* @__PURE__ */ import_react10.default.createElement("div", { className: "parameter-custom" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: "parameter-custom-value" }, p.key === "field" ? /* @__PURE__ */ import_react10.default.createElement("input", { "aria-label": "\u81EA\u5B9A\u4E49\u9879\u76EE\u9886\u57DF", placeholder: "\u81EA\u5B9A\u4E49", value: field, maxLength: 80, "aria-invalid": !!error, onKeyDown: enter, onChange: (e) => {
+    return (0, import_react_dom3.createPortal)(/* @__PURE__ */ import_react10.default.createElement("div", { ref: panel, className: "parameter-menu parameter-popover", role: "dialog", "aria-label": p.label + "\u8BBE\u7F6E", style: { ...position, visibility: position ? "visible" : "hidden" } }, /* @__PURE__ */ import_react10.default.createElement("p", null, p.label), p.options.map(option), currentExtra && !p.custom && option(value), p.custom && /* @__PURE__ */ import_react10.default.createElement("div", { className: "parameter-custom" }, /* @__PURE__ */ import_react10.default.createElement("div", { className: "parameter-custom-value" }, p.key === "field" ? /* @__PURE__ */ import_react10.default.createElement("input", { "aria-label": "\u81EA\u5B9A\u4E49\u9879\u76EE\u9886\u57DF", placeholder: "\u81EA\u5B9A\u4E49", value: field, maxLength: 80, "aria-invalid": !!error, onKeyDown: enter, onChange: (e) => {
       setField(e.target.value);
       setDirty(true);
       setError("");
