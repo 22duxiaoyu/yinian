@@ -4,6 +4,8 @@
 
 本仓库的 GitHub Pages 首页已替换为课程项目设计试用版。无需注册或账号。项目、对话、项目说明书和原始附件保存在访问者自己的浏览器；AI 处理用户发送的文字上下文。
 
-前端发布文件：`index.html`、`file-parser.js`、`pdf.worker.min.mjs`。保留 `CNAME` 和 `.nojekyll`。AI 后台在独立的服务端运行，模型密钥没有放进前端或本公开仓库。支持六个同时处理的 AI 请求。
+前端发布文件：`index.html`、`file-parser.js`、`pdf.worker.min.mjs`、`assets/reply-mermaid-12.1.0.js`。保留 `CNAME` 和 `.nojekyll`。AI 后台在独立的服务端运行，模型密钥没有放进前端或本公开仓库。支持六个同时处理的 AI 请求。
 
 2026-10-09 上线替换。旧版源文件和 Git 历史作为备份保留，首页使用当前课程项目原型。
+
+2026-10-10 同步 designerVersion 9：qwen3.8-max，正文与原生函数参数流式传输、等待提示、参数保护、本地回复恢复、流程图和发布项目视图。保留原有浏览器存储键及匿名访问。发布项目仅保存浏览器本地快照。
