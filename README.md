@@ -1,12 +1,7 @@
-# actionmind.cn 部署入口
+# 项目设计师内部体验
 
-2026-10-10：原产品已下架，当前仅保留“网站暂未开放”的静态占位页面。
+网址：https://www.actionmind.cn/
 
-正式网址：https://www.actionmind.cn/
+无需账号，直接打开使用。对话、项目和原始附件保存在各自浏览器。当前原型 06 的五部分生成流程；AI 后台为 https://api.actionmind.cn，模型密钥只保存在后台。
 
-- GitHub Pages：main 分支，仓库根目录。
-- CNAME：www.actionmind.cn，继续保留域名绑定和 HTTPS。
-- 后续部署：将新产品的前端构建文件放到仓库根目录，保留 CNAME 与 .nojekyll，提交并推送到 main。
-- 原产品前端、管理页、脚本、资源和旧 Supabase 部署文件已从当前分支移除。
-- 原 AI 后台已关闭公开访问，并移除全部模型运行环境变量及密钥。
-- 本地原型和历史备份保留，未删除各访问者浏览器中的私人记录。
+2026-10-11 更新：同步当前原型（designerVersion 21）和极简点线生成动效。
