@@ -24812,7 +24812,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
     return enginePromise;
   }
   function supportedDiagram(source) {
-    return source.length <= 6e3 && /^\s*(?:flowchart|graph)\s+(?:TD|TB|BT|LR|RL)\b/.test(source) && !/(?:%%\s*\{|^\s*(?:click|style|classDef|linkStyle)\b|<\s*\/?\s*[a-z]|@\{|url\s*\()/im.test(source.replace(/(?:-->|==>|-\.->|<-->|<--)/g, ""));
+    return source.length <= 6e3 && /^\s*(?:(?:flowchart|graph)\s+(?:TD|TB|BT|LR|RL)\b|(?:gantt|timeline|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|pie)\b)/.test(source) && !/(?:%%\s*\{|^\s*(?:click|link)\b|<\s*\/?\s*[a-z]|@\{|url\s*\()/im.test(source.replace(/(?:-->|==>|-\.->|<-->|<--|<br\s*\/?>)/gi, ""));
   }
   function renderReplyDiagram(source) {
     if (!supportedDiagram(source)) return Promise.reject(new Error("\u56FE\u793A\u65E0\u6CD5\u663E\u793A"));
