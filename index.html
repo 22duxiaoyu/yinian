@@ -21213,7 +21213,7 @@ ${text2}` : selected.opening;
     pending = request2;
     const timeout = setTimeout(() => request2.controller.abort(), 35e3);
     try {
-      const response = await fetch((true ? "https://api.actionmind.cn" : "") + "/api/project/waiting-phrases", {
+      const response = await fetch((true ? "https://actionmind-project-api.netlify.app" : "") + "/api/project/waiting-phrases", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         signal: request2.controller.signal,
@@ -26001,7 +26001,7 @@ Please report this to https://github.com/markedjs/marked.`, e) {
   }
 
   // prototypes/06-course-project-designer/project-service.js
-  var apiBase = true ? "https://api.actionmind.cn" : "";
+  var apiBase = true ? "https://actionmind-project-api.netlify.app" : "";
   async function request(path, input, { signal, onProgress } = {}) {
     if (location.protocol === "file:") throw new Error("\u8BF7\u5728 http://127.0.0.1:4350 \u6253\u5F00\u9879\u76EE\uFF0C\u624D\u80FD\u4F7F\u7528\u771F\u5B9E AI\u3002");
     let response;
