@@ -37,17 +37,6 @@
   if(gate){gate.hidden=false;error.textContent=message;input.focus();}
  }
  function unlock(){root.removeAttribute('data-experience-locked');gate.hidden=true;input.value='';}
- window.fetch=async function(inputValue,init){
-  const raw=inputValue instanceof Request?inputValue.url:String(inputValue);
-  const url=new URL(raw,location.href);
-  if(url.origin!==api||!url.pathname.startsWith('/api/project/'))return nativeFetch(inputValue,init);
-  if(!session||session.expiresAt<=Date.now()){lock();throw new Error('请输入体验密码后使用。');}
-  const request=new Request(inputValue,init),headers=new Headers(request.headers);
-  headers.set('Authorization','Bearer '+session.token);
-  const response=await nativeFetch(new Request(request,{headers}));
-  if(response.status===401)lock('体验验证已过期，请重新输入密码。');
-  return response;
- };
  async function mount(){
   gate=document.createElement('div');gate.id='experience-access-gate';
   gate.innerHTML='<main class="access-card"><div class="access-mark" aria-hidden="true">◇</div><h1>项目设计师</h1><p>内部体验，请输入体验密码。</p><form><label for="experience-password">体验密码</label><input id="experience-password" name="password" type="password" autocomplete="current-password" maxlength="256" required aria-describedby="experience-access-error"><button type="submit">进入体验 →</button><div class="access-error" id="experience-access-error" role="status" aria-live="polite"></div></form><p class="access-note">仅供内部体验，请勿转发体验密码。</p></main>';
